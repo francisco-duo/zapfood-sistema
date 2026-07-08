@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose *)",
+      "Bash(tasklist //FI \"IMAGENAME eq Docker Desktop.exe\")",
+      "Bash(powershell -Command \"Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue\")",
+      "Bash(curl -s http://localhost:8001/health)",
+      "Bash(docker compose exec api python -c ' *)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(rm -f src/App.css src/assets/react.svg)",
+      "Bash(mkdir -p src/theme src/context src/data src/types src/services src/pages src/components/menu src/components/cart src/components/checkout src/components/auth src/components/layout)",
+      "Bash(npx tsc *)",
+      "Bash(mkdir -p \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/.claude\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@mui/material/package.json'\\).version\\)\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/react/package.json'\\).version\\)\")",
+      "Bash(npm ls *)",
+      "Bash(curl -s -u zapfood:zapfood_dev_password http://localhost:15673/api/exchanges/%2F/pedidos_exchange)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('exchange:', d['name'], d['type'], 'durable=', d['durable']\\)\")",
+      "Bash(curl -s -u zapfood:zapfood_dev_password http://localhost:15673/api/queues/%2F/fila_notificacoes_cliente)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('queue:', d['name'], 'durable=', d['durable']\\)\")",
+      "Bash(curl -s -u zapfood:zapfood_dev_password http://localhost:15673/api/bindings/%2F)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -X POST http://localhost:8001/api/v1/pedidos -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:8001/api/v1/pedidos)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d\\), 'pedidos'\\); [print\\(p['id'], p['status'], p['origem']\\) for p in d]\")",
+      "Bash(npm uninstall *)",
+      "Bash(rm -f src/App.css)",
+      "Bash(mkdir -p src/theme src/context src/services src/types src/pages src/components/layout src/components/catalogo src/components/pedidos src/components/pdv src/components/logs src/components/dashboard)",
+      "Bash(cp .env.example .env)",
+      "Bash(rm -f src/assets/hero.png src/assets/react.svg)",
+      "Bash(curl -s -i -X OPTIONS http://localhost:8001/api/v1/pedidos -H 'Origin: http://localhost:5175' -H 'Access-Control-Request-Method: GET')",
+      "Bash(sed -i 's/inputProps={{ step: \"0.01\", min: 0 }}/slotProps={{ htmlInput: { step: \"0.01\", min: 0 } }}/g' \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/admin/src/components/catalogo/ProductFormDialog.tsx\")",
+      "Bash(sed -i 's/inputProps={{ minLength: 8 }}/slotProps={{ htmlInput: { minLength: 8 } }}/' \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/frontend/src/components/auth/AuthDialog.tsx\")"
+    ]
+  }
+}
