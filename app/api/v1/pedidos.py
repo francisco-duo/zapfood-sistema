@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from app.db.session import get_db
+from app.messaging.kds_manager import kds_manager
 from app.messaging.publisher import publicar_evento_pedido
 from app.messaging.routing_keys import RoutingKeyPedido
 from app.models.item_pedido import ItemPedido
@@ -14,6 +15,20 @@ from app.models.pedido import OrigemPedido, Pedido, StatusPedido, TipoEntrega
 from app.schemas.pedido import PedidoCreate, PedidoRead
 
 router = APIRouter()
+
+
+async def _notificar_kds_novo_pedido(pedido_payload: dict) -> None:
+    """RF011: empurra o pedido para a tela da cozinha assim que entra em preparo.
+
+    Recebe o payload já serializado (não o objeto ORM): a task roda depois da
+    resposta HTTP ser enviada, quando a sessão do banco já pode ter sido fechada.
+    """
+    await kds_manager.transmitir({"tipo": "pedido_em_preparo", "pedido": pedido_payload})
+
+
+async def _notificar_kds_saida(pedido_id: uuid.UUID) -> None:
+    """Remove o card da tela da cozinha quando o pedido sai da fila de preparo."""
+    await kds_manager.transmitir({"tipo": "pedido_removido", "pedido_id": str(pedido_id)})
 
 
 @router.get("", response_model=list[PedidoRead])
@@ -83,6 +98,9 @@ async def criar_pedido(
             pedido.id,
             {"status": pedido.status.value, "origem": pedido.origem.value},
         )
+        background_tasks.add_task(
+            _notificar_kds_novo_pedido, PedidoRead.model_validate(pedido).model_dump(mode="json")
+        )
 
     return pedido
 
@@ -116,11 +134,18 @@ async def aprovar_pedido(
     background_tasks.add_task(
         publicar_evento_pedido, RoutingKeyPedido.EM_PREPARO, pedido.id, dados_evento
     )
+    background_tasks.add_task(
+        _notificar_kds_novo_pedido, PedidoRead.model_validate(pedido).model_dump(mode="json")
+    )
     return pedido
 
 
 @router.post("/{pedido_id}/cancelar", response_model=PedidoRead)
-async def cancelar_pedido(pedido_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> Pedido:
+async def cancelar_pedido(
+    pedido_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> Pedido:
     pedido = await _carregar_pedido(pedido_id, db)
     if pedido.status in (StatusPedido.finalizado, StatusPedido.cancelado):
         raise HTTPException(
@@ -128,8 +153,13 @@ async def cancelar_pedido(pedido_id: uuid.UUID, db: AsyncSession = Depends(get_d
             detail="Pedido já foi finalizado ou cancelado.",
         )
 
+    estava_em_preparo = pedido.status == StatusPedido.em_preparo
     pedido.status = StatusPedido.cancelado
     await db.commit()
+
+    if estava_em_preparo:
+        background_tasks.add_task(_notificar_kds_saida, pedido.id)
+
     return pedido
 
 
@@ -156,6 +186,7 @@ async def marcar_pronto(
     background_tasks.add_task(
         publicar_evento_pedido, RoutingKeyPedido.PRONTO, pedido.id, {"status": pedido.status.value}
     )
+    background_tasks.add_task(_notificar_kds_saida, pedido.id)
     return pedido
 
 

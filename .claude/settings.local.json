@@ -32,7 +32,19 @@
       "Bash(rm -f src/assets/hero.png src/assets/react.svg)",
       "Bash(curl -s -i -X OPTIONS http://localhost:8001/api/v1/pedidos -H 'Origin: http://localhost:5175' -H 'Access-Control-Request-Method: GET')",
       "Bash(sed -i 's/inputProps={{ step: \"0.01\", min: 0 }}/slotProps={{ htmlInput: { step: \"0.01\", min: 0 } }}/g' \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/admin/src/components/catalogo/ProductFormDialog.tsx\")",
-      "Bash(sed -i 's/inputProps={{ minLength: 8 }}/slotProps={{ htmlInput: { minLength: 8 } }}/' \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/frontend/src/components/auth/AuthDialog.tsx\")"
+      "Bash(sed -i 's/inputProps={{ minLength: 8 }}/slotProps={{ htmlInput: { minLength: 8 } }}/' \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/frontend/src/components/auth/AuthDialog.tsx\")",
+      "Bash(curl -s http://localhost:8001/api/v1/cardapio)",
+      "Bash(docker exec *)",
+      "Bash(xxd)",
+      "Bash(mkdir -p src/theme src/types src/services src/hooks src/components)",
+      "Bash(rm -f \"/c/Users/kikoo/OneDrive/Documentos/PROGRAMAÇÃO/11SDEV/ZAPFOOD/kds/src/App.css\")",
+      "Bash(curl -s -X POST http://localhost:8001/api/v1/pedidos/fc33481b-de7f-4b71-8474-84c10b2612c6/pronto -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -s -X PUT http://localhost:8001/api/v1/produtos/fab1020f-02c5-4a88-9d67-706d097a6bf2 -H 'Content-Type: application/json' -d '{\"preco\": 22.90}')",
+      "Bash(python3 -c \"import json,sys; print\\('preco restaurado:', json.load\\(sys.stdin\\)['preco']\\)\")",
+      "Bash(curl -s -X POST http://localhost:8001/api/v1/pedidos/c4d358d7-464f-410d-a345-96e6f8e38593/pronto -o /dev/null -w \"cleanup status: %{http_code}\\\\n\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d['categorias']\\), 'categorias,', len\\(d['produtos']\\), 'produtos'\\)\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" http://localhost:8001/health)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" http://localhost:8001/api/v1/cardapio)"
     ]
   }
 }

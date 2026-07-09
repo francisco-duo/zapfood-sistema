@@ -13,8 +13,7 @@ function ehHoje(isoDate: string): boolean {
 }
 
 export async function calcularMetricasDoDia(): Promise<MetricasDia> {
-  const pedidos = await pedidoService.listar();
-  const produtos = catalogoService.listarProdutos();
+  const [pedidos, produtos] = await Promise.all([pedidoService.listar(), catalogoService.listarProdutos()]);
   const nomePorProdutoId = new Map(produtos.map((p) => [p.id, p.nome]));
 
   const pedidosValidos = pedidos.filter((p) => ehHoje(p.criado_em) && p.status !== "cancelado");

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -14,13 +14,14 @@ import {
   Divider,
   Alert,
   Snackbar,
+  CircularProgress,
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 import { catalogoService } from "../services/catalogoService";
 import { pedidoService } from "../services/pedidoService";
 import { registrarLog } from "../services/logService";
-import type { TipoEntrega } from "../types";
+import type { Produto, TipoEntrega } from "../types";
 
 const formatador = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -32,12 +33,19 @@ interface ItemCarrinhoPdv {
 }
 
 export default function PdvPage() {
-  const produtos = useMemo(() => catalogoService.listarProdutos().filter((p) => p.ativo), []);
+  const [produtos, setProdutos] = useState<Produto[] | null>(null);
   const [carrinho, setCarrinho] = useState<ItemCarrinhoPdv[]>([]);
   const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>("consumo_local");
   const [formaPagamento, setFormaPagamento] = useState("Dinheiro");
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+
+  useEffect(() => {
+    catalogoService
+      .listarProdutos()
+      .then((lista) => setProdutos(lista.filter((p) => p.ativo)))
+      .catch(() => setMensagem("Não foi possível carregar os produtos."));
+  }, []);
 
   const total = carrinho.reduce((soma, item) => soma + item.precoUnitario * item.quantidade, 0);
 
@@ -96,28 +104,34 @@ export default function PdvPage() {
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 7 }}>
-          <Grid container spacing={1.5}>
-            {produtos.map((produto) => (
-              <Grid key={produto.id} size={{ xs: 12, sm: 6 }}>
-                <Card
-                  variant="outlined"
-                  sx={{ cursor: "pointer" }}
-                  onClick={() =>
-                    adicionar(produto.id, produto.nome, produto.precoPromocional ?? produto.preco)
-                  }
-                >
-                  <CardContent>
-                    <Typography variant="subtitle2" fontWeight={600} noWrap>
-                      {produto.nome}
-                    </Typography>
-                    <Typography variant="body2" color="primary.main" fontWeight={700}>
-                      {formatador.format(produto.precoPromocional ?? produto.preco)}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          {produtos === null ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Grid container spacing={1.5}>
+              {produtos.map((produto) => (
+                <Grid key={produto.id} size={{ xs: 12, sm: 6 }}>
+                  <Card
+                    variant="outlined"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() =>
+                      adicionar(produto.id, produto.nome, produto.precoPromocional ?? produto.preco)
+                    }
+                  >
+                    <CardContent>
+                      <Typography variant="subtitle2" fontWeight={600} noWrap>
+                        {produto.nome}
+                      </Typography>
+                      <Typography variant="body2" color="primary.main" fontWeight={700}>
+                        {formatador.format(produto.precoPromocional ?? produto.preco)}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
