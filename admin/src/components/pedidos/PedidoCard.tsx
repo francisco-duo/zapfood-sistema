@@ -24,6 +24,7 @@ const COR_STATUS: Record<StatusPedido, "warning" | "info" | "success" | "default
 interface PedidoCardProps {
   pedido: Pedido;
   ocupado: boolean;
+  nomesProdutos: Map<string, string>;
   onAceitar: (id: string) => void;
   onCancelar: (id: string) => void;
   onMarcarPronto: (id: string) => void;
@@ -34,6 +35,7 @@ interface PedidoCardProps {
 export default function PedidoCard({
   pedido,
   ocupado,
+  nomesProdutos,
   onAceitar,
   onCancelar,
   onMarcarPronto,
@@ -64,7 +66,7 @@ export default function PedidoCard({
       <Stack spacing={0.5} sx={{ mb: 1.5 }}>
         {pedido.itens.map((item) => (
           <Typography key={item.id} variant="body2">
-            {item.quantidade}x produto {item.produto_id.slice(0, 8)}
+            {item.quantidade}x {nomesProdutos.get(item.produto_id) ?? `Produto ${item.produto_id.slice(0, 8)}`}
             {item.observacao ? ` — ${item.observacao}` : ""}
           </Typography>
         ))}

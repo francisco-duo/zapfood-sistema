@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Typography, Chip, CircularProgress, Alert, IconButton, Tooltip } from "@mui/material";
 import WifiIcon from "@mui/icons-material/Wifi";
 import WifiOffIcon from "@mui/icons-material/WifiOff";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { kdsService } from "../services/kdsService";
 import { pedidoService } from "../services/pedidoService";
+import { cardapioService } from "../services/cardapioService";
 import { useKdsSocket } from "../hooks/useKdsSocket";
 import { useBeep } from "../hooks/useBeep";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +18,7 @@ function paraPedidoNaFila(pedido: Pedido): PedidoNaFila {
 
 export default function KdsBoard() {
   const [fila, setFila] = useState<PedidoNaFila[] | null>(null);
+  const [produtos, setProdutos] = useState<{ id: string; nome: string }[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [pedidoOcupado, setPedidoOcupado] = useState<string | null>(null);
   const tocarBeep = useBeep();
@@ -28,6 +30,12 @@ export default function KdsBoard() {
       .then((pedidos) => setFila(pedidos.map(paraPedidoNaFila)))
       .catch(() => setErro("Não foi possível carregar a fila da cozinha."));
   }, []);
+
+  useEffect(() => {
+    cardapioService.listarProdutos().then(setProdutos).catch(() => {});
+  }, []);
+
+  const nomesProdutos = useMemo(() => new Map(produtos.map((p) => [p.id, p.nome])), [produtos]);
 
   const handleMensagem = useCallback(
     (mensagem: MensagemKds) => {
@@ -108,6 +116,7 @@ export default function KdsBoard() {
               key={pedido.id}
               pedido={pedido}
               ocupado={pedidoOcupado === pedido.id}
+              nomesProdutos={nomesProdutos}
               onMarcarPronto={handleMarcarPronto}
             />
           ))}

@@ -21,10 +21,11 @@ const ROTULO_ENTREGA = {
 interface PedidoCardProps {
   pedido: PedidoNaFila;
   ocupado: boolean;
+  nomesProdutos: Map<string, string>;
   onMarcarPronto: (id: string) => void;
 }
 
-export default function PedidoCard({ pedido, ocupado, onMarcarPronto }: PedidoCardProps) {
+export default function PedidoCard({ pedido, ocupado, nomesProdutos, onMarcarPronto }: PedidoCardProps) {
   const segundosDecorridos = useCronometro(pedido.entrouNaFilaEm);
   const minutosDecorridos = segundosDecorridos / 60;
 
@@ -85,7 +86,8 @@ export default function PedidoCard({ pedido, ocupado, onMarcarPronto }: PedidoCa
       <Stack spacing={0.75} sx={{ mb: 2 }}>
         {pedido.itens.map((item) => (
           <Typography key={item.id} variant="body1">
-            <strong>{item.quantidade}x</strong> produto {item.produto_id.slice(0, 8)}
+            <strong>{item.quantidade}x</strong>{" "}
+            {nomesProdutos.get(item.produto_id) ?? `Produto ${item.produto_id.slice(0, 8)}`}
             {item.observacao ? ` — ${item.observacao}` : ""}
           </Typography>
         ))}

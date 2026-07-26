@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Typography, Grid, CircularProgress, Alert, Snackbar, Tabs, Tab } from "@mui/material";
 import { pedidoService } from "../services/pedidoService";
+import { catalogoService } from "../services/catalogoService";
 import { registrarLog } from "../services/logService";
 import PedidoCard from "../components/pedidos/PedidoCard";
-import type { Pedido } from "../types";
+import type { Pedido, Produto } from "../types";
 
 const ABAS = [
   { value: "ativos", label: "Ativos" },
@@ -12,6 +13,7 @@ const ABAS = [
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [pedidoOcupado, setPedidoOcupado] = useState<string | null>(null);
@@ -34,6 +36,15 @@ export default function PedidosPage() {
     const intervalo = setInterval(carregar, 8000);
     return () => clearInterval(intervalo);
   }, [carregar]);
+
+  useEffect(() => {
+    catalogoService.listarProdutos().then(setProdutos).catch(() => {});
+  }, []);
+
+  const nomesProdutos = useMemo(
+    () => new Map(produtos.map((p) => [p.id, p.nome])),
+    [produtos]
+  );
 
   async function executarAcao(
     pedidoId: string,
@@ -86,6 +97,7 @@ export default function PedidosPage() {
               <PedidoCard
                 pedido={pedido}
                 ocupado={pedidoOcupado === pedido.id}
+                nomesProdutos={nomesProdutos}
                 onAceitar={(id) =>
                   executarAcao(id, pedidoService.aprovar, `Pedido #${id.slice(0, 8)} aceito.`)
                 }
