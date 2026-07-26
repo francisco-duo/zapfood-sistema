@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Typography, Chip, CircularProgress, Alert, IconButton, Tooltip } from "@mui/material";
-import WifiIcon from "@mui/icons-material/Wifi";
-import WifiOffIcon from "@mui/icons-material/WifiOff";
-import LogoutIcon from "@mui/icons-material/Logout";
+import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
+import WifiOffRoundedIcon from "@mui/icons-material/WifiOffRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import { kdsService } from "../services/kdsService";
 import { pedidoService } from "../services/pedidoService";
 import { cardapioService } from "../services/cardapioService";
@@ -70,25 +72,68 @@ export default function KdsBoard() {
 
   return (
     <Box sx={{ minHeight: "100dvh", p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h1">Cozinha — Fila de Preparo</Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+          pb: 2.5,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 46,
+              height: 46,
+              borderRadius: "14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(135deg, #5DB3FF 0%, #2E7FDB 100%)",
+              boxShadow: "0 8px 20px -6px rgba(93,179,255,0.5)",
+            }}
+          >
+            <SoupKitchenRoundedIcon sx={{ color: "#fff", fontSize: 24 }} />
+          </Box>
+          <Box>
+            <Typography variant="h1" sx={{ fontSize: "1.5rem", lineHeight: 1.1 }}>
+              Fila de Preparo
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+              {fila?.length ?? 0} pedido{fila?.length === 1 ? "" : "s"} em andamento
+            </Typography>
+          </Box>
+        </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Chip
-            icon={conectado ? <WifiIcon /> : <WifiOffIcon />}
-            label={conectado ? "Conectado em tempo real" : "Reconectando..."}
+            icon={conectado ? <WifiRoundedIcon /> : <WifiOffRoundedIcon />}
+            label={conectado ? "Ao vivo" : "Reconectando..."}
             color={conectado ? "success" : "warning"}
-            sx={{ fontSize: "1rem", height: 40, px: 1 }}
+            variant={conectado ? "filled" : "outlined"}
+            sx={{
+              fontSize: "0.95rem",
+              height: 40,
+              px: 1,
+              ...(conectado && { bgcolor: "rgba(61,220,132,0.15)", color: "success.main" }),
+            }}
           />
           <Tooltip title="Sair">
-            <IconButton onClick={logout} size="large" sx={{ color: "text.secondary" }}>
-              <LogoutIcon />
+            <IconButton
+              onClick={logout}
+              size="large"
+              sx={{ color: "text.secondary", bgcolor: "background.paper", "&:hover": { color: "error.main" } }}
+            >
+              <LogoutRoundedIcon />
             </IconButton>
           </Tooltip>
         </Box>
       </Box>
 
       {erro && (
-        <Alert severity="error" sx={{ mb: 2, fontSize: "1.05rem" }} onClose={() => setErro(null)}>
+        <Alert severity="error" sx={{ mb: 2, fontSize: "1.05rem", borderRadius: "12px" }} onClose={() => setErro(null)}>
           {erro}
         </Alert>
       )}
@@ -98,7 +143,22 @@ export default function KdsBoard() {
           <CircularProgress size={48} />
         </Box>
       ) : fila.length === 0 ? (
-        <Box sx={{ textAlign: "center", py: 10 }}>
+        <Box sx={{ textAlign: "center", py: 12 }}>
+          <Box
+            sx={{
+              width: 96,
+              height: 96,
+              borderRadius: "28px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "background.paper",
+              mx: "auto",
+              mb: 2,
+            }}
+          >
+            <RestaurantRoundedIcon sx={{ fontSize: 44, color: "text.secondary" }} />
+          </Box>
           <Typography variant="h2" color="text.secondary">
             Nenhum pedido em preparo no momento.
           </Typography>

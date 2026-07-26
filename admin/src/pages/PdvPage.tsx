@@ -20,10 +20,11 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import PrintIcon from "@mui/icons-material/Print";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
+import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import { catalogoService } from "../services/catalogoService";
 import { pedidoService } from "../services/pedidoService";
 import { registrarLog } from "../services/logService";
@@ -158,19 +159,44 @@ export default function PdvPage() {
               {produtos.map((produto) => (
                 <Grid key={produto.id} size={{ xs: 12, sm: 6 }}>
                   <Card
-                    variant="outlined"
-                    sx={{ cursor: "pointer" }}
+                    sx={{
+                      cursor: "pointer",
+                      borderRadius: "14px",
+                      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 10px 24px -8px rgba(15,23,42,0.18)",
+                      },
+                      "&:active": { transform: "translateY(0)" },
+                    }}
                     onClick={() =>
                       adicionar(produto.id, produto.nome, produto.precoPromocional ?? produto.preco)
                     }
                   >
-                    <CardContent>
-                      <Typography variant="subtitle2" fontWeight={600} noWrap>
-                        {produto.nome}
-                      </Typography>
-                      <Typography variant="body2" color="primary.main" fontWeight={700}>
-                        {formatador.format(produto.precoPromocional ?? produto.preco)}
-                      </Typography>
+                    <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="subtitle2" fontWeight={700} noWrap>
+                          {produto.nome}
+                        </Typography>
+                        <Typography variant="body2" color="primary.main" fontWeight={800}>
+                          {formatador.format(produto.precoPromocional ?? produto.preco)}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "primary.main",
+                          color: "#fff",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <AddRoundedIcon fontSize="small" />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -180,13 +206,14 @@ export default function PdvPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1.5 }}>
-              Comanda
-            </Typography>
+          <Paper sx={{ p: 2.25, borderRadius: "18px", position: { md: "sticky" }, top: { md: 88 } }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
+              <ShoppingCartRoundedIcon sx={{ color: "primary.main", fontSize: 20 }} />
+              <Typography variant="h6">Comanda</Typography>
+            </Stack>
 
             {carrinho.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                 Clique nos produtos ao lado para adicionar.
               </Typography>
             ) : (
@@ -194,28 +221,41 @@ export default function PdvPage() {
                 {carrinho.map((item) => (
                   <Box
                     key={item.produtoId}
-                    sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      p: 1,
+                      borderRadius: "12px",
+                      bgcolor: "background.default",
+                    }}
                   >
-                    <Typography variant="body2" sx={{ flex: 1 }} noWrap>
+                    <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }} noWrap>
                       {item.nome}
                     </Typography>
-                    <IconButton
-                      size="small"
-                      onClick={() => alterarQuantidade(item.produtoId, item.quantidade - 1)}
+                    <Stack
+                      direction="row"
+                      sx={{ alignItems: "center", bgcolor: "#fff", borderRadius: 999, border: "1px solid", borderColor: "divider" }}
                     >
-                      <RemoveCircleIcon fontSize="small" />
-                    </IconButton>
-                    <Typography variant="body2" sx={{ minWidth: 16, textAlign: "center" }}>
-                      {item.quantidade}
-                    </Typography>
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => alterarQuantidade(item.produtoId, item.quantidade + 1)}
-                    >
-                      <AddCircleIcon fontSize="small" />
-                    </IconButton>
-                    <Typography variant="body2" fontWeight={600} sx={{ minWidth: 70, textAlign: "right" }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => alterarQuantidade(item.produtoId, item.quantidade - 1)}
+                      >
+                        <RemoveRoundedIcon fontSize="small" />
+                      </IconButton>
+                      <Typography variant="body2" fontWeight={700} sx={{ minWidth: 16, textAlign: "center" }}>
+                        {item.quantidade}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => alterarQuantidade(item.produtoId, item.quantidade + 1)}
+                      >
+                        <AddRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                    <Typography variant="body2" fontWeight={800} sx={{ minWidth: 70, textAlign: "right" }}>
                       {formatador.format(item.precoUnitario * item.quantidade)}
                     </Typography>
                   </Box>
@@ -307,21 +347,23 @@ export default function PdvPage() {
                 <MenuItem value="Cartão de Débito">Cartão de Débito</MenuItem>
               </TextField>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="h6">Total</Typography>
-                <Typography variant="h6" color="primary.main">
-                  {formatador.format(total)}
-                </Typography>
+              <Box sx={{ borderRadius: "14px", p: 1.75, bgcolor: "secondary.main", color: "#fff" }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.25 }}>
+                  <Typography sx={{ opacity: 0.7, fontWeight: 600, fontSize: "0.85rem" }}>Total</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                    {formatador.format(total)}
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={carrinho.length === 0 || enviando}
+                  onClick={finalizarVenda}
+                >
+                  {enviando ? "Enviando..." : "Enviar para a cozinha"}
+                </Button>
               </Box>
-
-              <Button
-                variant="contained"
-                size="large"
-                disabled={carrinho.length === 0 || enviando}
-                onClick={finalizarVenda}
-              >
-                {enviando ? "Enviando..." : "Enviar para a cozinha"}
-              </Button>
             </Stack>
           </Paper>
         </Grid>
@@ -330,8 +372,20 @@ export default function PdvPage() {
       <Snackbar open={!!mensagem} autoHideDuration={3000} onClose={() => setMensagem(null)} message={mensagem} />
 
       <Dialog open={!!reciboAtual} onClose={() => setReciboAtual(null)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <CheckCircleIcon color="success" />
+        <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.25, pt: 3 }}>
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(135deg, #34D399 0%, #059669 100%)",
+            }}
+          >
+            <CheckCircleRoundedIcon sx={{ color: "#fff", fontSize: 20 }} />
+          </Box>
           Venda registrada!
         </DialogTitle>
         <DialogContent>
@@ -340,23 +394,23 @@ export default function PdvPage() {
               <Typography variant="body2" color="text.secondary">
                 Pedido #{reciboAtual.pedidoId.slice(0, 8)} enviado direto para a cozinha.
               </Typography>
-              <Divider sx={{ my: 1 }} />
-              {reciboAtual.itens.map((item, indice) => (
-                <Box key={indice} sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography variant="body2">
-                    {item.quantidade}x {item.nome}
-                  </Typography>
-                  <Typography variant="body2">
-                    {formatador.format(item.quantidade * item.precoUnitario)}
-                  </Typography>
-                </Box>
-              ))}
-              <Divider sx={{ my: 1 }} />
+              <Stack spacing={0.75} sx={{ my: 1, p: 1.5, borderRadius: "12px", bgcolor: "background.default" }}>
+                {reciboAtual.itens.map((item, indice) => (
+                  <Box key={indice} sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {item.quantidade}x {item.nome}
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatador.format(item.quantidade * item.precoUnitario)}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="subtitle1" fontWeight={700}>
+                <Typography variant="subtitle1" fontWeight={800}>
                   Total
                 </Typography>
-                <Typography variant="subtitle1" fontWeight={700}>
+                <Typography variant="subtitle1" fontWeight={800}>
                   {formatador.format(reciboAtual.total)}
                 </Typography>
               </Box>
@@ -368,11 +422,11 @@ export default function PdvPage() {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={() => setReciboAtual(null)}>Fechar</Button>
           <Button
             variant="contained"
-            startIcon={<PrintIcon />}
+            startIcon={<PrintRoundedIcon />}
             onClick={() => reciboAtual && imprimirRecibo(reciboAtual)}
           >
             Imprimir recibo

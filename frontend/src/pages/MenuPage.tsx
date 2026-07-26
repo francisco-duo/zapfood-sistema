@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Stack, CircularProgress, Alert, Chip } from "@mui/material";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { Box, Typography, Stack, CircularProgress, Alert } from "@mui/material";
+import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
 import { buscarCardapio } from "../services/menuService";
 import ProductCard from "../components/menu/ProductCard";
 import type { Categoria, Produto } from "../types";
@@ -38,16 +38,42 @@ export default function MenuPage() {
   );
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3.5}>
+      <Box
+        sx={{
+          borderRadius: "20px",
+          p: 2.5,
+          background: "linear-gradient(135deg, #1A1618 0%, #2A2226 100%)",
+          color: "#fff",
+        }}
+      >
+        <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, opacity: 0.7, letterSpacing: "0.04em" }}>
+          BEM-VINDO
+        </Typography>
+        <Typography variant="h1" sx={{ fontSize: "1.4rem", mt: 0.25 }}>
+          O que vamos pedir hoje?
+        </Typography>
+      </Box>
+
       {produtosEmPromocao.length > 0 && (
         <Box component="section">
-          <Chip
-            icon={<LocalOfferIcon />}
-            label="Promoções"
-            color="error"
-            sx={{ mb: 1.5, fontWeight: 600 }}
-          />
-          <Stack spacing={1.5}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mb: 1.5 }}>
+            <Box
+              sx={{
+                width: 26,
+                height: 26,
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "linear-gradient(135deg, #FF8563 0%, #E23F1D 100%)",
+              }}
+            >
+              <LocalFireDepartmentRoundedIcon sx={{ fontSize: 16, color: "#fff" }} />
+            </Box>
+            <Typography variant="h2">Promoções em alta</Typography>
+          </Stack>
+          <Stack spacing={1.25}>
             {produtosEmPromocao.map((produto) => (
               <ProductCard key={produto.id} produto={produto} />
             ))}
@@ -63,7 +89,7 @@ export default function MenuPage() {
             <Typography variant="h2" sx={{ mb: 1.5 }}>
               {categoria.nome}
             </Typography>
-            <Stack spacing={1.5}>
+            <Stack spacing={1.25}>
               {produtosDaCategoria.map((produto) => (
                 <ProductCard key={produto.id} produto={produto} />
               ))}

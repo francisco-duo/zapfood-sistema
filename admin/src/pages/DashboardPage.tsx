@@ -12,10 +12,12 @@ import {
   TableRow,
   TableCell,
   Chip,
+  Avatar,
 } from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import ReceiptIcon from "@mui/icons-material/Receipt";
-import ShoppingBasketIcon from "@mui/icons-material/ShoppingBasket";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import { calcularMetricasDoDia } from "../services/metricsService";
 import type { MetricasDia } from "../types";
 
@@ -25,35 +27,49 @@ function CartaoMetrica({
   icone,
   titulo,
   valor,
+  gradiente,
 }: {
   icone: ReactNode;
   titulo: string;
   valor: string;
+  gradiente: string;
 }) {
   return (
-    <Paper sx={{ p: 2.5, display: "flex", alignItems: "center", gap: 2 }}>
+    <Paper sx={{ p: 2.5, borderRadius: "18px", position: "relative", overflow: "hidden" }}>
       <Box
         sx={{
-          bgcolor: "primary.main",
-          color: "primary.contrastText",
-          borderRadius: 2,
-          width: 48,
-          height: 48,
+          position: "absolute",
+          top: -20,
+          right: -20,
+          width: 90,
+          height: 90,
+          borderRadius: "50%",
+          background: gradiente,
+          opacity: 0.12,
+        }}
+      />
+      <Box
+        sx={{
+          width: 46,
+          height: 46,
+          borderRadius: "14px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background: gradiente,
+          color: "#fff",
+          mb: 1.5,
+          boxShadow: "0 8px 18px -6px rgba(15,23,42,0.35)",
         }}
       >
         {icone}
       </Box>
-      <Box>
-        <Typography variant="body2" color="text.secondary">
-          {titulo}
-        </Typography>
-        <Typography variant="h5" fontWeight={700}>
-          {valor}
-        </Typography>
-      </Box>
+      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+        {titulo}
+      </Typography>
+      <Typography variant="h5" fontWeight={800} sx={{ letterSpacing: "-0.01em" }}>
+        {valor}
+      </Typography>
     </Paper>
   );
 }
@@ -79,38 +95,45 @@ export default function DashboardPage() {
 
   return (
     <Box>
-      <Typography variant="h1" sx={{ mb: 3 }}>
+      <Typography variant="h1" sx={{ mb: 0.5 }}>
         Dashboard do dia
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Indicadores consolidados de hoje, atualizados em tempo real.
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <CartaoMetrica
-            icone={<TrendingUpIcon />}
+            icone={<TrendingUpRoundedIcon />}
             titulo="Faturamento bruto"
             valor={formatador.format(metricas.faturamentoBruto)}
+            gradiente="linear-gradient(135deg, #34D399 0%, #059669 100%)"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
           <CartaoMetrica
-            icone={<ReceiptIcon />}
+            icone={<ReceiptLongRoundedIcon />}
             titulo="Ticket médio"
             valor={formatador.format(metricas.ticketMedio)}
+            gradiente="linear-gradient(135deg, #60A5FA 0%, #2563EB 100%)"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
           <CartaoMetrica
-            icone={<ShoppingBasketIcon />}
+            icone={<ShoppingBasketRoundedIcon />}
             titulo="Pedidos válidos hoje"
             valor={String(metricas.totalPedidos)}
+            gradiente="linear-gradient(135deg, #FF8563 0%, #E23F1D 100%)"
           />
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 2.5 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Ranking de pratos mais vendidos
-        </Typography>
+      <Paper sx={{ p: 2.5, borderRadius: "18px" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          <EmojiEventsRoundedIcon sx={{ color: "#F5A524" }} />
+          <Typography variant="h6">Ranking de pratos mais vendidos</Typography>
+        </Box>
         {metricas.rankingProdutos.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             Nenhum item vendido hoje ainda.
@@ -129,11 +152,24 @@ export default function DashboardPage() {
               {metricas.rankingProdutos.map((item, index) => (
                 <TableRow key={item.produtoId}>
                   <TableCell>
-                    <Chip label={index + 1} size="small" color={index === 0 ? "secondary" : "default"} />
+                    <Avatar
+                      sx={{
+                        width: 26,
+                        height: 26,
+                        fontSize: "0.75rem",
+                        fontWeight: 800,
+                        bgcolor: index === 0 ? "#F5A524" : "action.hover",
+                        color: index === 0 ? "#fff" : "text.secondary",
+                      }}
+                    >
+                      {index + 1}
+                    </Avatar>
                   </TableCell>
-                  <TableCell>{item.nome}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{item.nome}</TableCell>
                   <TableCell align="right">{item.quantidade}</TableCell>
-                  <TableCell align="right">{formatador.format(item.total)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                    {formatador.format(item.total)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

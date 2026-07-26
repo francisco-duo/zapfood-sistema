@@ -1,5 +1,8 @@
-import { Paper, Box, Typography, Chip, Button, Stack, Divider } from "@mui/material";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
+import { Paper, Box, Typography, Chip, Button, Stack } from "@mui/material";
+import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
+import DeliveryDiningRoundedIcon from "@mui/icons-material/DeliveryDiningRounded";
+import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import RestaurantRoundedIcon from "@mui/icons-material/RestaurantRounded";
 import type { Pedido, StatusPedido } from "../../types";
 
 const formatador = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -20,6 +23,18 @@ const COR_STATUS: Record<StatusPedido, "warning" | "info" | "success" | "default
   pronto_retirada: "success",
   finalizado: "default",
   cancelado: "error",
+};
+
+const ICONE_ENTREGA = {
+  delivery: DeliveryDiningRoundedIcon,
+  retirada: StorefrontRoundedIcon,
+  consumo_local: RestaurantRoundedIcon,
+};
+
+const ROTULO_ENTREGA = {
+  delivery: "Delivery",
+  retirada: "Retirada",
+  consumo_local: "Consumo local",
 };
 
 interface PedidoCardProps {
@@ -43,31 +58,32 @@ export default function PedidoCard({
   onSaiuParaEntrega,
   onFinalizar,
 }: PedidoCardProps) {
+  const IconeEntrega = ICONE_ENTREGA[pedido.tipo_entrega];
+
   return (
-    <Paper sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+    <Paper sx={{ p: 2.25, borderRadius: "16px" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
         <Box>
-          <Typography variant="subtitle2" fontWeight={700}>
-            Pedido #{pedido.id.slice(0, 8)}
+          <Typography variant="subtitle2" fontWeight={800}>
+            #{pedido.id.slice(0, 8)}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {pedido.origem === "balcao" ? "Venda de balcão" : "Pedido online"} ·{" "}
-            {pedido.tipo_entrega === "delivery"
-              ? "Delivery"
-              : pedido.tipo_entrega === "retirada"
-                ? "Retirada"
-                : "Consumo local"}
-          </Typography>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", mt: 0.25 }}>
+            <IconeEntrega sx={{ fontSize: 14, color: "text.secondary" }} />
+            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              {pedido.origem === "balcao" ? "Balcão" : "Online"} · {ROTULO_ENTREGA[pedido.tipo_entrega]}
+            </Typography>
+          </Stack>
         </Box>
         <Chip label={ROTULO_STATUS[pedido.status]} color={COR_STATUS[pedido.status]} size="small" />
       </Box>
 
-      <Divider sx={{ my: 1 }} />
-
-      <Stack spacing={0.5} sx={{ mb: 1.5 }}>
+      <Stack spacing={0.5} sx={{ mb: 1.5, p: 1.25, borderRadius: "12px", bgcolor: "background.default" }}>
         {pedido.itens.map((item) => (
-          <Typography key={item.id} variant="body2">
-            {item.quantidade}x {nomesProdutos.get(item.produto_id) ?? `Produto ${item.produto_id.slice(0, 8)}`}
+          <Typography key={item.id} variant="body2" sx={{ fontWeight: 500 }}>
+            <Box component="span" sx={{ fontWeight: 800, color: "primary.main" }}>
+              {item.quantidade}x
+            </Box>{" "}
+            {nomesProdutos.get(item.produto_id) ?? `Produto ${item.produto_id.slice(0, 8)}`}
             {item.observacao ? ` — ${item.observacao}` : ""}
           </Typography>
         ))}
@@ -80,23 +96,24 @@ export default function PedidoCard({
             alignItems: "flex-start",
             gap: 0.75,
             mb: 1.5,
-            p: 1,
-            borderRadius: 1,
-            bgcolor: "action.hover",
+            p: 1.1,
+            borderRadius: "10px",
+            bgcolor: "rgba(255,90,54,0.06)",
+            border: "1px solid rgba(255,90,54,0.15)",
           }}
         >
-          <LocationOnIcon fontSize="small" color="action" sx={{ mt: "1px" }} />
-          <Typography variant="body2" color="text.secondary">
+          <LocationOnRoundedIcon fontSize="small" sx={{ color: "primary.main", mt: "1px" }} />
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             {pedido.endereco_entrega}
           </Typography>
         </Box>
       )}
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-        <Typography variant="body2" color="text.secondary">
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.75 }}>
+        <Typography variant="body2" color="text.secondary" fontWeight={600}>
           {pedido.forma_pagamento}
         </Typography>
-        <Typography variant="subtitle1" fontWeight={700}>
+        <Typography variant="subtitle1" fontWeight={800}>
           {formatador.format(pedido.valor_total)}
         </Typography>
       </Box>
@@ -118,6 +135,7 @@ export default function PedidoCard({
               color="error"
               disabled={ocupado}
               onClick={() => onCancelar(pedido.id)}
+              sx={{ borderColor: "divider" }}
             >
               Cancelar
             </Button>
@@ -139,7 +157,13 @@ export default function PedidoCard({
           </Button>
         )}
         {(pedido.status === "pronto_entrega" || pedido.status === "pronto_retirada") && (
-          <Button size="small" variant="outlined" disabled={ocupado} onClick={() => onFinalizar(pedido.id)}>
+          <Button
+            size="small"
+            variant="outlined"
+            disabled={ocupado}
+            onClick={() => onFinalizar(pedido.id)}
+            sx={{ borderColor: "divider" }}
+          >
             Finalizar
           </Button>
         )}

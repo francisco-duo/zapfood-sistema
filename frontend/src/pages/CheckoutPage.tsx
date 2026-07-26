@@ -14,9 +14,9 @@ import {
   MenuItem,
   Button,
   Alert,
-  Divider,
   Box,
 } from "@mui/material";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { pedidoService } from "../services/pedidoService";
@@ -88,13 +88,13 @@ export default function CheckoutPage() {
 
   return (
     <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
-      <Typography variant="h1" sx={{ fontSize: "1.5rem" }}>
+      <Typography variant="h1" sx={{ fontSize: "1.4rem" }}>
         Finalizar pedido
       </Typography>
 
       {erro && <Alert severity="error">{erro}</Alert>}
 
-      <Card>
+      <Card sx={{ borderRadius: "18px" }}>
         <CardContent>
           <FormControl fullWidth>
             <FormLabel id="tipo-entrega-label">Como deseja receber?</FormLabel>
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card sx={{ borderRadius: "18px" }}>
         <CardContent>
           <TextField
             select
@@ -177,18 +177,24 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
 
-      <Divider />
-
-      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h6">Total</Typography>
-        <Typography variant="h6" color="primary.main">
-          {formatador.format(valorTotal)}
-        </Typography>
+      <Box sx={{ borderRadius: "18px", p: 2, bgcolor: "secondary.main", color: "#fff" }}>
+        <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+          <Typography sx={{ opacity: 0.7, fontWeight: 600 }}>Total do pedido</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            {formatador.format(valorTotal)}
+          </Typography>
+        </Stack>
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={enviando}
+          endIcon={!enviando && <ArrowForwardRoundedIcon />}
+        >
+          {enviando ? "Enviando pedido..." : "Confirmar Pedido"}
+        </Button>
       </Box>
-
-      <Button type="submit" variant="contained" size="large" fullWidth disabled={enviando}>
-        {enviando ? "Enviando pedido..." : "Confirmar Pedido"}
-      </Button>
     </Stack>
   );
 }

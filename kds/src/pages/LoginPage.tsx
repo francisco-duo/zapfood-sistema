@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Box, Paper, Stack, TextField, Button, Typography, Alert } from "@mui/material";
-import SoupKitchenIcon from "@mui/icons-material/SoupKitchen";
+import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -33,12 +33,35 @@ export default function LoginPage() {
         p: 2,
       }}
     >
-      <Paper elevation={4} sx={{ p: 4, width: "100%", maxWidth: 420 }}>
+      <Paper
+        sx={{
+          p: { xs: 3, sm: 5 },
+          width: "100%",
+          maxWidth: 440,
+          border: "1px solid",
+          borderColor: "divider",
+          boxShadow: "0 30px 70px -20px rgba(0,0,0,0.55)",
+        }}
+      >
         <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-          <Stack spacing={1} sx={{ alignItems: "center" }}>
-            <SoupKitchenIcon color="primary" sx={{ fontSize: 48 }} />
-            <Typography variant="h1" sx={{ fontSize: "1.5rem" }}>
-              zapFood — Painel da Cozinha
+          <Stack spacing={1.5} sx={{ alignItems: "center" }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: "18px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "linear-gradient(135deg, #5DB3FF 0%, #2E7FDB 100%)",
+                boxShadow: "0 12px 28px -8px rgba(93,179,255,0.55)",
+                mb: 0.5,
+              }}
+            >
+              <SoupKitchenRoundedIcon sx={{ color: "#fff", fontSize: 32 }} />
+            </Box>
+            <Typography variant="h1" sx={{ fontSize: "1.4rem", textAlign: "center" }}>
+              Painel da Cozinha
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
               Acesso restrito à equipe de cozinha e administradores.

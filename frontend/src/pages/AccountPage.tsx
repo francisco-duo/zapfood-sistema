@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Stack, Typography, Button, Card, CardContent, Avatar } from "@mui/material";
-import PersonIcon from "@mui/icons-material/Person";
+import { Stack, Typography, Button, Card, CardContent, Avatar, Box } from "@mui/material";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { useAuth } from "../context/AuthContext";
 import AuthDialog from "../components/auth/AuthDialog";
 
@@ -10,10 +11,22 @@ export default function AccountPage() {
 
   if (!estaAutenticado) {
     return (
-      <Stack spacing={2} sx={{ alignItems: "center", py: 6, textAlign: "center" }}>
-        <PersonIcon sx={{ fontSize: 64, color: "text.disabled" }} />
+      <Stack spacing={2} sx={{ alignItems: "center", py: 10, textAlign: "center" }}>
+        <Box
+          sx={{
+            width: 84,
+            height: 84,
+            borderRadius: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "action.hover",
+          }}
+        >
+          <PersonRoundedIcon sx={{ fontSize: 38, color: "text.disabled" }} />
+        </Box>
         <Typography variant="h6">Você ainda não entrou na sua conta</Typography>
-        <Button variant="contained" onClick={() => setAuthAberto(true)}>
+        <Button variant="contained" onClick={() => setAuthAberto(true)} sx={{ mt: 1 }}>
           Entrar ou criar conta
         </Button>
         <AuthDialog open={authAberto} onClose={() => setAuthAberto(false)} onSucesso={() => setAuthAberto(false)} />
@@ -22,22 +35,39 @@ export default function AccountPage() {
   }
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h1" sx={{ fontSize: "1.5rem" }}>
+    <Stack spacing={2.5}>
+      <Typography variant="h1" sx={{ fontSize: "1.4rem" }}>
         Minha conta
       </Typography>
-      <Card>
-        <CardContent sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Avatar sx={{ bgcolor: "primary.main" }}>{usuario!.nome[0]}</Avatar>
-          <Stack>
-            <Typography fontWeight={600}>{usuario!.nome}</Typography>
-            <Typography variant="body2" color="text.secondary">
+      <Card sx={{ borderRadius: "18px" }}>
+        <CardContent sx={{ display: "flex", alignItems: "center", gap: 2, py: 2.5 }}>
+          <Avatar
+            sx={{
+              width: 52,
+              height: 52,
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #FF8563 0%, #E23F1D 100%)",
+            }}
+          >
+            {usuario!.nome[0]}
+          </Avatar>
+          <Stack sx={{ minWidth: 0 }}>
+            <Typography fontWeight={700} noWrap>
+              {usuario!.nome}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
               {usuario!.email}
             </Typography>
           </Stack>
         </CardContent>
       </Card>
-      <Button variant="outlined" color="error" onClick={logout}>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={logout}
+        startIcon={<LogoutRoundedIcon />}
+        sx={{ borderRadius: "14px" }}
+      >
         Sair
       </Button>
     </Stack>

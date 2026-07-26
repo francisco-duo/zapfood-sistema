@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { Box, Paper, Stack, TextField, Button, Typography, Alert } from "@mui/material";
-import StorefrontIcon from "@mui/icons-material/Storefront";
+import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -35,14 +35,36 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "primary.main",
         p: 2,
+        background: "radial-gradient(circle at 20% 20%, #1E293B 0%, #0F172A 55%, #0B1120 100%)",
       }}
     >
-      <Paper elevation={4} sx={{ p: 4, width: "100%", maxWidth: 400 }}>
+      <Paper
+        sx={{
+          p: { xs: 3, sm: 5 },
+          width: "100%",
+          maxWidth: 420,
+          borderRadius: "24px",
+          boxShadow: "0 24px 60px -16px rgba(0,0,0,0.35)",
+        }}
+      >
         <Stack spacing={3} component="form" onSubmit={handleSubmit}>
-          <Stack spacing={1} sx={{ alignItems: "center" }}>
-            <StorefrontIcon color="primary" sx={{ fontSize: 40 }} />
+          <Stack spacing={1.25} sx={{ alignItems: "center" }}>
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "linear-gradient(135deg, #FF8563 0%, #E23F1D 100%)",
+                boxShadow: "0 10px 24px -6px rgba(226,63,29,0.55)",
+                mb: 0.5,
+              }}
+            >
+              <StorefrontRoundedIcon sx={{ color: "#fff", fontSize: 28 }} />
+            </Box>
             <Typography variant="h1">zapFood Backoffice</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
               Acesso restrito a administradores e funcionários.
@@ -70,11 +92,6 @@ export default function LoginPage() {
           <Button type="submit" variant="contained" size="large" disabled={carregando} fullWidth>
             {carregando ? "Entrando..." : "Entrar"}
           </Button>
-
-          <Typography variant="caption" color="text.secondary">
-            Demo: admin@zapfood.com / admin123 (proprietário) ou balcao@zapfood.com / balcao123
-            (atendente).
-          </Typography>
         </Stack>
       </Paper>
     </Box>
