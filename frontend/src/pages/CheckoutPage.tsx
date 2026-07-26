@@ -35,7 +35,7 @@ const enderecoVazio: EnderecoEntrega = {
 
 export default function CheckoutPage() {
   const { itens, valorTotal, limparCarrinho } = useCart();
-  const { usuario, estaAutenticado } = useAuth();
+  const { estaAutenticado } = useAuth();
   const navigate = useNavigate();
 
   const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>("delivery");
@@ -68,7 +68,6 @@ export default function CheckoutPage() {
     setEnviando(true);
     try {
       await pedidoService.enviar({
-        usuarioId: usuario!.id,
         itens,
         valorTotal,
         checkout: {

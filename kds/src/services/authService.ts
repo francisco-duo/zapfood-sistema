@@ -8,7 +8,7 @@ interface TokenResponse {
   usuario: Usuario;
 }
 
-const PERFIS_PERMITIDOS: PerfilUsuario[] = ["admin", "funcionario_balcao"];
+const PERFIS_PERMITIDOS: PerfilUsuario[] = ["admin", "cozinha"];
 
 export const authService = {
   async login(email: string, senha: string): Promise<Usuario> {
@@ -19,7 +19,7 @@ export const authService = {
     const dados = await tratarResposta<TokenResponse>(response, "E-mail ou senha inválidos.");
 
     if (!PERFIS_PERMITIDOS.includes(dados.usuario.perfil)) {
-      throw new Error("Este usuário não tem acesso ao backoffice.");
+      throw new Error("Este usuário não tem acesso ao painel da cozinha.");
     }
 
     authStorage.salvar(dados.access_token, dados.usuario);
@@ -28,6 +28,10 @@ export const authService = {
 
   obterSessao(): Usuario | null {
     return authStorage.obterUsuario();
+  },
+
+  obterToken(): string | null {
+    return authStorage.obterToken();
   },
 
   logout(): void {

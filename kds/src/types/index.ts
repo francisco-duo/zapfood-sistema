@@ -1,3 +1,12 @@
+export type PerfilUsuario = "cliente" | "admin" | "funcionario_balcao" | "cozinha";
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  perfil: PerfilUsuario;
+}
+
 export type OrigemPedido = "online" | "balcao";
 export type TipoEntrega = "delivery" | "retirada" | "consumo_local";
 export type StatusPedido =

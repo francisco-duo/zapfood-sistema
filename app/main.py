@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.auth import router as auth_router
 from app.api.v1.cardapio import router as cardapio_router
 from app.api.v1.kds import router as kds_router
 from app.api.v1.pedidos import router as pedidos_router
@@ -61,6 +62,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(pedidos_router, prefix="/api/v1/pedidos", tags=["pedidos"])
 app.include_router(cardapio_router, prefix="/api/v1", tags=["cardapio"])
 app.include_router(kds_router, tags=["kds"])

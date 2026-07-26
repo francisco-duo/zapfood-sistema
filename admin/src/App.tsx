@@ -5,6 +5,7 @@ import PedidosPage from "./pages/PedidosPage";
 import PdvPage from "./pages/PdvPage";
 import CardapioPage from "./pages/CardapioPage";
 import LogsPage from "./pages/LogsPage";
+import UsuariosPage from "./pages/UsuariosPage";
 import RequireAuth from "./components/layout/RequireAuth";
 
 export default function App() {
@@ -14,7 +15,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <RequireAuth>
+          <RequireAuth somenteAdmin>
             <DashboardPage />
           </RequireAuth>
         }
@@ -38,7 +39,7 @@ export default function App() {
       <Route
         path="/cardapio"
         element={
-          <RequireAuth>
+          <RequireAuth somenteAdmin>
             <CardapioPage />
           </RequireAuth>
         }
@@ -46,8 +47,16 @@ export default function App() {
       <Route
         path="/logs"
         element={
-          <RequireAuth>
+          <RequireAuth somenteAdmin>
             <LogsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/usuarios"
+        element={
+          <RequireAuth somenteAdmin>
+            <UsuariosPage />
           </RequireAuth>
         }
       />

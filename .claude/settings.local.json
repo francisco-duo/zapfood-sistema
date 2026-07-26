@@ -44,7 +44,8 @@
       "Bash(curl -s -X POST http://localhost:8001/api/v1/pedidos/c4d358d7-464f-410d-a345-96e6f8e38593/pronto -o /dev/null -w \"cleanup status: %{http_code}\\\\n\")",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(len\\(d['categorias']\\), 'categorias,', len\\(d['produtos']\\), 'produtos'\\)\")",
       "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" http://localhost:8001/health)",
-      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" http://localhost:8001/api/v1/cardapio)"
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" http://localhost:8001/api/v1/cardapio)",
+      "Bash(python3 -c \"import secrets; print\\('SECRET_KEY=' + secrets.token_urlsafe\\(48\\)\\); print\\('PEPPER_SENHA=' + secrets.token_urlsafe\\(48\\)\\)\")"
     ]
   }
 }

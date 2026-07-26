@@ -1,46 +1,35 @@
-import { API_BASE_URL } from "./config";
+import { apiFetch, tratarResposta } from "./apiClient";
 import type { Pedido, StatusPedido, TipoEntrega } from "../types";
-
-async function tratarResposta<T>(response: Response, mensagemErro: string): Promise<T> {
-  if (!response.ok) {
-    const corpo = await response.json().catch(() => null);
-    throw new Error(corpo?.detail ?? mensagemErro);
-  }
-  return response.json();
-}
 
 export const pedidoService = {
   async listar(status?: StatusPedido): Promise<Pedido[]> {
-    const url = new URL(`${API_BASE_URL}/pedidos`);
-    if (status) url.searchParams.set("status_pedido", status);
-    const response = await fetch(url);
+    const query = status ? `?status_pedido=${status}` : "";
+    const response = await apiFetch(`/pedidos${query}`);
     return tratarResposta(response, "Não foi possível carregar os pedidos.");
   },
 
   async aprovar(pedidoId: string): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos/${pedidoId}/aprovar`, { method: "POST" });
+    const response = await apiFetch(`/pedidos/${pedidoId}/aprovar`, { method: "POST" });
     return tratarResposta(response, "Não foi possível aprovar o pedido.");
   },
 
   async cancelar(pedidoId: string): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos/${pedidoId}/cancelar`, { method: "POST" });
+    const response = await apiFetch(`/pedidos/${pedidoId}/cancelar`, { method: "POST" });
     return tratarResposta(response, "Não foi possível cancelar o pedido.");
   },
 
   async marcarPronto(pedidoId: string): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos/${pedidoId}/pronto`, { method: "POST" });
+    const response = await apiFetch(`/pedidos/${pedidoId}/pronto`, { method: "POST" });
     return tratarResposta(response, "Não foi possível marcar o pedido como pronto.");
   },
 
   async marcarSaiuParaEntrega(pedidoId: string): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos/${pedidoId}/saiu-para-entrega`, {
-      method: "POST",
-    });
+    const response = await apiFetch(`/pedidos/${pedidoId}/saiu-para-entrega`, { method: "POST" });
     return tratarResposta(response, "Não foi possível marcar o pedido como saiu para entrega.");
   },
 
   async finalizar(pedidoId: string): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos/${pedidoId}/finalizar`, { method: "POST" });
+    const response = await apiFetch(`/pedidos/${pedidoId}/finalizar`, { method: "POST" });
     return tratarResposta(response, "Não foi possível finalizar o pedido.");
   },
 
@@ -49,9 +38,8 @@ export const pedidoService = {
     formaPagamento: string;
     itens: { produto_id: string; quantidade: number; preco_unitario_cobrado: number; observacao?: string }[];
   }): Promise<Pedido> {
-    const response = await fetch(`${API_BASE_URL}/pedidos`, {
+    const response = await apiFetch("/pedidos", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         origem: "balcao",
         tipo_entrega: dados.tipoEntrega,

@@ -24,16 +24,18 @@ import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import HistoryIcon from "@mui/icons-material/History";
 import LogoutIcon from "@mui/icons-material/Logout";
+import GroupIcon from "@mui/icons-material/Group";
 import { useAuth } from "../../context/AuthContext";
 
 const DRAWER_WIDTH = 240;
 
 const ITENS_NAV = [
-  { label: "Dashboard", path: "/", icon: <DashboardIcon /> },
-  { label: "Fila de Pedidos", path: "/pedidos", icon: <ReceiptLongIcon /> },
-  { label: "Venda Balcão (PDV)", path: "/pdv", icon: <PointOfSaleIcon /> },
-  { label: "Cardápio", path: "/cardapio", icon: <RestaurantMenuIcon /> },
-  { label: "Auditoria de Logs", path: "/logs", icon: <HistoryIcon /> },
+  { label: "Dashboard", path: "/", icon: <DashboardIcon />, somenteAdmin: true },
+  { label: "Fila de Pedidos", path: "/pedidos", icon: <ReceiptLongIcon />, somenteAdmin: false },
+  { label: "Venda Balcão (PDV)", path: "/pdv", icon: <PointOfSaleIcon />, somenteAdmin: false },
+  { label: "Cardápio", path: "/cardapio", icon: <RestaurantMenuIcon />, somenteAdmin: true },
+  { label: "Auditoria de Logs", path: "/logs", icon: <HistoryIcon />, somenteAdmin: true },
+  { label: "Usuários", path: "/usuarios", icon: <GroupIcon />, somenteAdmin: true },
 ];
 
 export default function AdminShell({ children }: { children: ReactNode }) {
@@ -53,7 +55,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       </Toolbar>
       <Divider />
       <List sx={{ flex: 1 }}>
-        {ITENS_NAV.map((item) => (
+        {ITENS_NAV.filter((item) => !item.somenteAdmin || usuario?.perfil === "admin").map((item) => (
           <ListItemButton
             key={item.path}
             selected={location.pathname === item.path}

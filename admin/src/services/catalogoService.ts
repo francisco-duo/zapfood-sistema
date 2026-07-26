@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config";
+import { apiFetch, tratarResposta } from "./apiClient";
 import { registrarLog } from "./logService";
 import type { Categoria, Produto } from "../types";
 
@@ -38,25 +38,16 @@ function produtoDaApi(p: ProdutoApi): Produto {
   };
 }
 
-async function tratarResposta<T>(response: Response, mensagemErro: string): Promise<T> {
-  if (!response.ok) {
-    const corpo = await response.json().catch(() => null);
-    throw new Error(corpo?.detail ?? mensagemErro);
-  }
-  return response.json();
-}
-
 export const catalogoService = {
   async listarCategorias(): Promise<Categoria[]> {
-    const response = await fetch(`${API_BASE_URL}/categorias`);
+    const response = await apiFetch("/categorias");
     const dados = await tratarResposta<CategoriaApi[]>(response, "Não foi possível carregar as categorias.");
     return dados.map(categoriaDaApi);
   },
 
   async criarCategoria(nome: string): Promise<Categoria> {
-    const response = await fetch(`${API_BASE_URL}/categorias`, {
+    const response = await apiFetch("/categorias", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nome }),
     });
     const criada = await tratarResposta<CategoriaApi>(response, "Não foi possível criar a categoria.");
@@ -65,15 +56,14 @@ export const catalogoService = {
   },
 
   async listarProdutos(): Promise<Produto[]> {
-    const response = await fetch(`${API_BASE_URL}/produtos`);
+    const response = await apiFetch("/produtos");
     const dados = await tratarResposta<ProdutoApi[]>(response, "Não foi possível carregar os produtos.");
     return dados.map(produtoDaApi);
   },
 
   async criarProduto(dados: Omit<Produto, "id" | "ativo">): Promise<Produto> {
-    const response = await fetch(`${API_BASE_URL}/produtos`, {
+    const response = await apiFetch("/produtos", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         categoria_id: dados.categoriaId,
         nome: dados.nome,
@@ -89,9 +79,8 @@ export const catalogoService = {
   },
 
   async atualizarProduto(id: string, dados: Partial<Omit<Produto, "id">>): Promise<Produto> {
-    const response = await fetch(`${API_BASE_URL}/produtos/${id}`, {
+    const response = await apiFetch(`/produtos/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...(dados.categoriaId !== undefined && { categoria_id: dados.categoriaId }),
         ...(dados.nome !== undefined && { nome: dados.nome }),
@@ -121,7 +110,7 @@ export const catalogoService = {
   },
 
   async alternarAtivo(id: string): Promise<Produto> {
-    const response = await fetch(`${API_BASE_URL}/produtos/${id}/alternar-ativo`, { method: "PATCH" });
+    const response = await apiFetch(`/produtos/${id}/alternar-ativo`, { method: "PATCH" });
     const atualizado = await tratarResposta<ProdutoApi>(response, "Não foi possível alterar o status do produto.");
     const produto = produtoDaApi(atualizado);
     registrarLog("catalogo", `Produto "${produto.nome}" ${produto.ativo ? "reativado" : "desativado"}.`);

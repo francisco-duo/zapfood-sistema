@@ -13,6 +13,7 @@ class PerfilUsuario(str, Enum):
     cliente = "cliente"
     admin = "admin"
     funcionario_balcao = "funcionario_balcao"
+    cozinha = "cozinha"
 
 
 class Usuario(Base):

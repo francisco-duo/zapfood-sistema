@@ -4,9 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.deps import requer_perfil
 from app.db.session import get_db
 from app.models.categoria import Categoria
 from app.models.produto import Produto
+from app.models.usuario import PerfilUsuario
 from app.schemas.categoria import CategoriaCreate, CategoriaRead
 from app.schemas.produto import CardapioResponse, ProdutoCreate, ProdutoRead, ProdutoUpdate
 from app.services.cardapio_cache import (
@@ -16,6 +18,11 @@ from app.services.cardapio_cache import (
 )
 
 router = APIRouter()
+
+_SOMENTE_ADMIN = [Depends(requer_perfil(PerfilUsuario.admin))]
+# Leitura do catálogo administrativo: balcão também precisa enxergar os
+# produtos para montar a comanda do PDV (RF010), mesmo sem poder editá-los.
+_LEITURA_GESTAO = [Depends(requer_perfil(PerfilUsuario.admin, PerfilUsuario.funcionario_balcao))]
 
 
 @router.get("/cardapio", response_model=CardapioResponse)
@@ -40,13 +47,18 @@ async def obter_cardapio(db: AsyncSession = Depends(get_db)) -> CardapioResponse
     return resposta
 
 
-@router.get("/categorias", response_model=list[CategoriaRead])
+@router.get("/categorias", response_model=list[CategoriaRead], dependencies=_LEITURA_GESTAO)
 async def listar_categorias(db: AsyncSession = Depends(get_db)) -> list[Categoria]:
     resultado = await db.execute(select(Categoria).order_by(Categoria.nome))
     return list(resultado.scalars().all())
 
 
-@router.post("/categorias", response_model=CategoriaRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/categorias",
+    response_model=CategoriaRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=_SOMENTE_ADMIN,
+)
 async def criar_categoria(dados: CategoriaCreate, db: AsyncSession = Depends(get_db)) -> Categoria:
     categoria = Categoria(nome=dados.nome)
     db.add(categoria)
@@ -55,7 +67,7 @@ async def criar_categoria(dados: CategoriaCreate, db: AsyncSession = Depends(get
     return categoria
 
 
-@router.get("/produtos", response_model=list[ProdutoRead])
+@router.get("/produtos", response_model=list[ProdutoRead], dependencies=_LEITURA_GESTAO)
 async def listar_produtos(db: AsyncSession = Depends(get_db)) -> list[Produto]:
     """Listagem administrativa: inclui produtos inativos. Não usa cache."""
     resultado = await db.execute(select(Produto).order_by(Produto.nome))
@@ -69,7 +81,12 @@ async def _carregar_produto(produto_id: uuid.UUID, db: AsyncSession) -> Produto:
     return produto
 
 
-@router.post("/produtos", response_model=ProdutoRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/produtos",
+    response_model=ProdutoRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=_SOMENTE_ADMIN,
+)
 async def criar_produto(dados: ProdutoCreate, db: AsyncSession = Depends(get_db)) -> Produto:
     produto = Produto(**dados.model_dump())
     db.add(produto)
@@ -78,7 +95,7 @@ async def criar_produto(dados: ProdutoCreate, db: AsyncSession = Depends(get_db)
     return produto
 
 
-@router.put("/produtos/{produto_id}", response_model=ProdutoRead)
+@router.put("/produtos/{produto_id}", response_model=ProdutoRead, dependencies=_SOMENTE_ADMIN)
 async def atualizar_produto(
     produto_id: uuid.UUID, dados: ProdutoUpdate, db: AsyncSession = Depends(get_db)
 ) -> Produto:
@@ -90,7 +107,9 @@ async def atualizar_produto(
     return produto
 
 
-@router.patch("/produtos/{produto_id}/alternar-ativo", response_model=ProdutoRead)
+@router.patch(
+    "/produtos/{produto_id}/alternar-ativo", response_model=ProdutoRead, dependencies=_SOMENTE_ADMIN
+)
 async def alternar_ativo_produto(produto_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> Produto:
     produto = await _carregar_produto(produto_id, db)
     produto.ativo = not produto.ativo

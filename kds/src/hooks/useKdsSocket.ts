@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { WS_URL } from "../services/config";
+import { authStorage } from "../services/authStorage";
 import type { MensagemKds } from "../types";
 
 const INTERVALO_RECONEXAO_MS = 2000;
@@ -7,6 +8,9 @@ const INTERVALO_RECONEXAO_MS = 2000;
 /**
  * RF011/RNF001: canal WebSocket persistente com a cozinha — a tela nunca
  * precisa de F5. Se a conexão cair (rede, deploy, etc.), reconecta sozinha.
+ *
+ * O token viaja via query string porque o WebSocket nativo do navegador não
+ * permite enviar cabeçalhos customizados (como Authorization) no handshake.
  */
 export function useKdsSocket(onMensagem: (mensagem: MensagemKds) => void) {
   const [conectado, setConectado] = useState(false);
@@ -14,12 +18,15 @@ export function useKdsSocket(onMensagem: (mensagem: MensagemKds) => void) {
   callbackRef.current = onMensagem;
 
   useEffect(() => {
+    const token = authStorage.obterToken();
+    if (!token) return;
+
     let socket: WebSocket | null = null;
     let timerReconexao: ReturnType<typeof setTimeout> | null = null;
     let desmontado = false;
 
     function conectar() {
-      socket = new WebSocket(WS_URL);
+      socket = new WebSocket(`${WS_URL}?token=${encodeURIComponent(token!)}`);
 
       socket.onopen = () => setConectado(true);
 

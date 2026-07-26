@@ -6,15 +6,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
+from app.core.deps import get_current_usuario, requer_perfil
 from app.db.session import get_db
 from app.messaging.kds_manager import kds_manager
 from app.messaging.publisher import publicar_evento_pedido
 from app.messaging.routing_keys import RoutingKeyPedido
 from app.models.item_pedido import ItemPedido
 from app.models.pedido import OrigemPedido, Pedido, StatusPedido, TipoEntrega
+from app.models.usuario import PerfilUsuario, Usuario
 from app.schemas.pedido import PedidoCreate, PedidoRead
 
 router = APIRouter()
+
+_GESTAO = (PerfilUsuario.admin, PerfilUsuario.funcionario_balcao)
 
 
 async def _notificar_kds_novo_pedido(pedido_payload: dict) -> None:
@@ -31,7 +35,7 @@ async def _notificar_kds_saida(pedido_id: uuid.UUID) -> None:
     await kds_manager.transmitir({"tipo": "pedido_removido", "pedido_id": str(pedido_id)})
 
 
-@router.get("", response_model=list[PedidoRead])
+@router.get("", response_model=list[PedidoRead], dependencies=[Depends(requer_perfil(*_GESTAO))])
 async def listar_pedidos(
     status_pedido: StatusPedido | None = None,
     db: AsyncSession = Depends(get_db),
@@ -58,7 +62,20 @@ async def criar_pedido(
     dados: PedidoCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_usuario),
 ) -> Pedido:
+    if dados.origem == OrigemPedido.balcao:
+        if usuario.perfil not in _GESTAO:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Somente administradores ou balcão podem lançar vendas de balcão.",
+            )
+        usuario_id_pedido = None
+    else:
+        # RF004: um pedido online sempre pertence a quem está autenticado —
+        # nunca confia em um usuario_id vindo do corpo da requisição.
+        usuario_id_pedido = usuario.id
+
     valor_total = sum(
         (Decimal(str(item.preco_unitario_cobrado)) * item.quantidade for item in dados.itens),
         Decimal("0"),
@@ -70,7 +87,7 @@ async def criar_pedido(
     )
 
     pedido = Pedido(
-        usuario_id=dados.usuario_id,
+        usuario_id=usuario_id_pedido,
         origem=dados.origem,
         tipo_entrega=dados.tipo_entrega,
         status=status_inicial,
@@ -106,17 +123,32 @@ async def criar_pedido(
 
 
 @router.get("/{pedido_id}", response_model=PedidoRead)
-async def obter_pedido(pedido_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> Pedido:
-    return await _carregar_pedido(pedido_id, db)
+async def obter_pedido(
+    pedido_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    usuario: Usuario = Depends(get_current_usuario),
+) -> Pedido:
+    pedido = await _carregar_pedido(pedido_id, db)
+    eh_dono = usuario.perfil == PerfilUsuario.cliente and pedido.usuario_id == usuario.id
+    if usuario.perfil not in _GESTAO and not eh_dono:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Você não tem permissão para ver este pedido.",
+        )
+    return pedido
 
 
-@router.post("/{pedido_id}/aprovar", response_model=PedidoRead)
+@router.post(
+    "/{pedido_id}/aprovar",
+    response_model=PedidoRead,
+    dependencies=[Depends(requer_perfil(*_GESTAO))],
+)
 async def aprovar_pedido(
     pedido_id: uuid.UUID,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> Pedido:
-    """RF009: o admin aceita o pedido no painel, que segue direto para a fila da cozinha."""
+    """RF009: o admin/balcão aceita o pedido no painel, que segue direto para a fila da cozinha."""
     pedido = await _carregar_pedido(pedido_id, db)
     if pedido.status != StatusPedido.aguardando_aprovacao:
         raise HTTPException(
@@ -140,7 +172,11 @@ async def aprovar_pedido(
     return pedido
 
 
-@router.post("/{pedido_id}/cancelar", response_model=PedidoRead)
+@router.post(
+    "/{pedido_id}/cancelar",
+    response_model=PedidoRead,
+    dependencies=[Depends(requer_perfil(*_GESTAO))],
+)
 async def cancelar_pedido(
     pedido_id: uuid.UUID,
     background_tasks: BackgroundTasks,
@@ -163,7 +199,11 @@ async def cancelar_pedido(
     return pedido
 
 
-@router.post("/{pedido_id}/pronto", response_model=PedidoRead)
+@router.post(
+    "/{pedido_id}/pronto",
+    response_model=PedidoRead,
+    dependencies=[Depends(requer_perfil(PerfilUsuario.admin, PerfilUsuario.cozinha))],
+)
 async def marcar_pronto(
     pedido_id: uuid.UUID,
     background_tasks: BackgroundTasks,
@@ -190,7 +230,11 @@ async def marcar_pronto(
     return pedido
 
 
-@router.post("/{pedido_id}/saiu-para-entrega", response_model=PedidoRead)
+@router.post(
+    "/{pedido_id}/saiu-para-entrega",
+    response_model=PedidoRead,
+    dependencies=[Depends(requer_perfil(*_GESTAO))],
+)
 async def marcar_saiu_para_entrega(
     pedido_id: uuid.UUID,
     background_tasks: BackgroundTasks,
@@ -218,7 +262,11 @@ async def marcar_saiu_para_entrega(
     return pedido
 
 
-@router.post("/{pedido_id}/finalizar", response_model=PedidoRead)
+@router.post(
+    "/{pedido_id}/finalizar",
+    response_model=PedidoRead,
+    dependencies=[Depends(requer_perfil(*_GESTAO))],
+)
 async def finalizar_pedido(pedido_id: uuid.UUID, db: AsyncSession = Depends(get_db)) -> Pedido:
     pedido = await _carregar_pedido(pedido_id, db)
     if pedido.status not in (StatusPedido.pronto_entrega, StatusPedido.pronto_retirada):
