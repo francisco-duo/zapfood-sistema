@@ -1,4 +1,5 @@
 import { Paper, Box, Typography, Chip, Button, Stack, Divider } from "@mui/material";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 import type { Pedido, StatusPedido } from "../../types";
 
 const formatador = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -71,6 +72,25 @@ export default function PedidoCard({
           </Typography>
         ))}
       </Stack>
+
+      {pedido.tipo_entrega === "delivery" && pedido.endereco_entrega && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 0.75,
+            mb: 1.5,
+            p: 1,
+            borderRadius: 1,
+            bgcolor: "action.hover",
+          }}
+        >
+          <LocationOnIcon fontSize="small" color="action" sx={{ mt: "1px" }} />
+          <Typography variant="body2" color="text.secondary">
+            {pedido.endereco_entrega}
+          </Typography>
+        </Box>
+      )}
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
         <Typography variant="body2" color="text.secondary">

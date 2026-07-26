@@ -36,6 +36,7 @@ export const pedidoService = {
   async criarVendaBalcao(dados: {
     tipoEntrega: TipoEntrega;
     formaPagamento: string;
+    enderecoEntrega?: string | null;
     itens: { produto_id: string; quantidade: number; preco_unitario_cobrado: number; observacao?: string }[];
   }): Promise<Pedido> {
     const response = await apiFetch("/pedidos", {
@@ -44,6 +45,7 @@ export const pedidoService = {
         origem: "balcao",
         tipo_entrega: dados.tipoEntrega,
         forma_pagamento: dados.formaPagamento,
+        endereco_entrega: dados.enderecoEntrega ?? null,
         itens: dados.itens,
       }),
     });
