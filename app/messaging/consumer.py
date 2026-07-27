@@ -8,7 +8,9 @@ from app.core.config import settings
 from app.messaging.notifiers import enviar_email, enviar_push, enviar_whatsapp, mensagem_para
 from app.messaging.rabbitmq import NOTIFICATIONS_QUEUE, declarar_topologia, obter_canal
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(
+    level=settings.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+)
 logger = logging.getLogger("messaging.consumer")
 
 
@@ -33,7 +35,7 @@ async def processar_mensagem(mensagem: aio_pika.abc.AbstractIncomingMessage) -> 
 async def main() -> None:
     _, fila = await declarar_topologia()
     channel = await obter_canal()
-    await channel.set_qos(prefetch_count=10)
+    await channel.set_qos(prefetch_count=settings.WORKER_PREFETCH_COUNT)
 
     logger.info(
         "Worker de notificações ouvindo a fila '%s' em %s", NOTIFICATIONS_QUEUE, settings.RABBITMQ_URL

@@ -31,7 +31,16 @@ services:
     image: zapfood-backend:prod
     container_name: zapfood_api
     command:
-      ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+      [
+        "uvicorn", "app.main:app",
+        "--host", "0.0.0.0",
+        "--port", "8000",
+        "--workers", "${API_WORKERS:-4}",
+        # Atras do proxy nginx: confia no X-Forwarded-* pra logs/URLs saírem
+        # com o esquema/IP reais em vez do que o proxy vê (http/127.0.0.1).
+        "--proxy-headers",
+        "--forwarded-allow-ips", "*",
+      ]
     env_file:
       - ../../.env.production
     # Sem porta publicada: em producao o acesso e sempre via proxy (443).

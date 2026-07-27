@@ -17,10 +17,17 @@ _fila_notificacoes: AbstractQueue | None = None
 async def obter_canal() -> AbstractChannel:
     global _connection, _channel
     if _connection is None or _connection.is_closed:
-        _connection = await aio_pika.connect_robust(settings.RABBITMQ_URL)
+        _connection = await aio_pika.connect_robust(
+            settings.RABBITMQ_URL, heartbeat=settings.RABBITMQ_HEARTBEAT_SEGUNDOS
+        )
     if _channel is None or _channel.is_closed:
         _channel = await _connection.channel()
     return _channel
+
+
+def conexao_esta_saudavel() -> bool:
+    """Usado pelo endpoint de readiness — nunca abre conexão nova, só reporta o estado atual."""
+    return _connection is not None and not _connection.is_closed
 
 
 async def declarar_topologia() -> tuple[AbstractExchange, AbstractQueue]:
