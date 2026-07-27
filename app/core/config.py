@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "change-me-in-production"
 
+    # Lista separada por vírgula; em produção deve apontar para os domínios reais.
+    CORS_ORIGINS: str = "http://localhost:5174,http://localhost:5175,http://localhost:5176"
+
     # RNF002: pepper aplicado antes do hashing Argon2id, mantido apenas em
     # variável de ambiente (nunca no banco) como camada extra de defesa.
     PEPPER_SENHA: str = "change-me-in-production-pepper"
@@ -27,6 +30,10 @@ class Settings(BaseSettings):
     REDIS_URL: str
 
     RABBITMQ_URL: str
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [origem.strip() for origem in self.CORS_ORIGINS.split(",") if origem.strip()]
 
 
 settings = Settings()

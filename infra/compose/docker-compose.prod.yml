@@ -1,0 +1,186 @@
+# Compose de producao. Rodar sempre a partir da raiz do repositorio:
+#   docker compose -f infra/compose/docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# Diferencas em relacao ao docker-compose.yml de desenvolvimento:
+#   - imagens multi-stage (builder + runtime), sem bind mount de codigo-fonte
+#   - todos os containers de aplicacao rodam com usuario non-root
+#   - db/redis/rabbitmq nao publicam porta para o host (somente rede interna)
+#   - migracoes do banco rodam em um servico dedicado antes da API subir
+#   - frontends sao servidos como estatico via nginx (sem vite dev server)
+
+services:
+  migrate:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    image: zapfood-backend:prod
+    command: ["alembic", "upgrade", "head"]
+    env_file:
+      - ../../.env.production
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    image: zapfood-backend:prod
+    container_name: zapfood_api
+    command:
+      ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+    env_file:
+      - ../../.env.production
+    ports:
+      - "${API_PORT:-8001}:8000"
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    image: zapfood-backend:prod
+    container_name: zapfood_worker
+    command: ["python", "-m", "app.messaging.consumer"]
+    env_file:
+      - ../../.env.production
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f app.messaging.consumer || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: zapfood_db
+    env_file:
+      - ../../.env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - zapfood_pgdata_prod:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: zapfood_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - zapfood_redis_data_prod:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: zapfood_rabbitmq
+    env_file:
+      - ../../.env.production
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - zapfood_rabbitmq_data_prod:/var/lib/rabbitmq
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    image: zapfood-frontend:prod
+    container_name: zapfood_frontend
+    ports:
+      - "${FRONTEND_PORT:-5174}:8080"
+    networks:
+      - public
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.admin
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    image: zapfood-admin:prod
+    container_name: zapfood_admin
+    ports:
+      - "${ADMIN_PORT:-5175}:8080"
+    networks:
+      - public
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  kds:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.kds
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
+    image: zapfood-kds:prod
+    container_name: zapfood_kds
+    ports:
+      - "${KDS_PORT:-5176}:8080"
+    networks:
+      - public
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+  public:
+    driver: bridge
+
+volumes:
+  zapfood_pgdata_prod:
+  zapfood_redis_data_prod:
+  zapfood_rabbitmq_data_prod:
