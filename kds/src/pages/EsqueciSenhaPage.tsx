@@ -1,42 +1,35 @@
 import { useState, type FormEvent } from "react";
-import { Box, Paper, Stack, TextField, Button, Typography, Alert, Link } from "@mui/material";
-import SoupKitchenRoundedIcon from "@mui/icons-material/SoupKitchenRounded";
-import { useAuth } from "../context/AuthContext";
+import { Box, Paper, Stack, TextField, Button, Typography, Alert } from "@mui/material";
+import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
+import { authService } from "../services/authService";
 
-interface LoginPageProps {
-  onEsqueciSenha: () => void;
+interface EsqueciSenhaPageProps {
+  onVoltar: () => void;
 }
 
-export default function LoginPage({ onEsqueciSenha }: LoginPageProps) {
-  const { login } = useAuth();
+export default function EsqueciSenhaPage({ onVoltar }: EsqueciSenhaPageProps) {
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [mensagem, setMensagem] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setErro(null);
+    setMensagem(null);
     setCarregando(true);
     try {
-      await login(email, senha);
+      const resposta = await authService.esqueciSenha(email);
+      setMensagem(resposta.mensagem);
     } catch (err) {
-      setErro(err instanceof Error ? err.message : "Não foi possível entrar.");
+      setErro(err instanceof Error ? err.message : "Não foi possível processar a solicitação.");
     } finally {
       setCarregando(false);
     }
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        p: 2,
-      }}
-    >
+    <Box sx={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
       <Paper
         sx={{
           p: { xs: 3, sm: 5 },
@@ -62,47 +55,33 @@ export default function LoginPage({ onEsqueciSenha }: LoginPageProps) {
                 mb: 0.5,
               }}
             >
-              <SoupKitchenRoundedIcon sx={{ color: "#fff", fontSize: 32 }} />
+              <LockResetRoundedIcon sx={{ color: "#fff", fontSize: 32 }} />
             </Box>
             <Typography variant="h1" sx={{ fontSize: "1.4rem", textAlign: "center" }}>
-              Painel da Cozinha
+              Esqueceu sua senha?
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-              Acesso restrito à equipe de cozinha e administradores.
+              Informe o e-mail cadastrado e enviaremos um link de redefinição.
             </Typography>
           </Stack>
 
+          {mensagem && <Alert severity="success">{mensagem}</Alert>}
           {erro && <Alert severity="error">{erro}</Alert>}
 
           <TextField
-            label="E-mail"
+            label="E-mail cadastrado"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
-            size="medium"
-          />
-          <TextField
-            label="Senha"
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            fullWidth
           />
           <Button type="submit" variant="contained" size="large" disabled={carregando} fullWidth sx={{ py: 1.5 }}>
-            {carregando ? "Entrando..." : "Entrar"}
+            {carregando ? "Enviando..." : "Enviar link de redefinição"}
           </Button>
-          <Link
-            component="button"
-            type="button"
-            onClick={onEsqueciSenha}
-            underline="hover"
-            sx={{ fontSize: "0.85rem", alignSelf: "center" }}
-          >
-            Esqueci minha senha
-          </Link>
+          <Button variant="text" color="inherit" onClick={onVoltar}>
+            Voltar para o login
+          </Button>
         </Stack>
       </Paper>
     </Box>

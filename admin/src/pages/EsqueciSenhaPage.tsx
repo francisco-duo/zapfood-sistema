@@ -1,29 +1,26 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { Box, Paper, Stack, TextField, Button, Typography, Alert, Link } from "@mui/material";
-import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Box, Paper, Stack, TextField, Button, Typography, Alert } from "@mui/material";
+import LockResetRoundedIcon from "@mui/icons-material/LockResetRounded";
+import { authService } from "../services/authService";
 
-export default function LoginPage() {
-  const { estaAutenticado, login } = useAuth();
+export default function EsqueciSenhaPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
-
-  if (estaAutenticado) {
-    return <Navigate to="/" replace />;
-  }
+  const [mensagem, setMensagem] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setErro(null);
+    setMensagem(null);
     setCarregando(true);
     try {
-      await login(email, senha);
+      const resposta = await authService.esqueciSenha(email);
+      setMensagem(resposta.mensagem);
     } catch (err) {
-      setErro(err instanceof Error ? err.message : "Não foi possível entrar.");
+      setErro(err instanceof Error ? err.message : "Não foi possível processar a solicitação.");
     } finally {
       setCarregando(false);
     }
@@ -64,44 +61,31 @@ export default function LoginPage() {
                 mb: 0.5,
               }}
             >
-              <StorefrontRoundedIcon sx={{ color: "#fff", fontSize: 28 }} />
+              <LockResetRoundedIcon sx={{ color: "#fff", fontSize: 28 }} />
             </Box>
-            <Typography variant="h1">zapFood Backoffice</Typography>
+            <Typography variant="h1">Esqueceu sua senha?</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-              Acesso restrito a administradores e funcionários.
+              Informe o e-mail cadastrado no backoffice e enviaremos um link de redefinição.
             </Typography>
           </Stack>
 
+          {mensagem && <Alert severity="success">{mensagem}</Alert>}
           {erro && <Alert severity="error">{erro}</Alert>}
 
           <TextField
-            label="E-mail"
+            label="E-mail cadastrado"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
           />
-          <TextField
-            label="Senha"
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-            fullWidth
-          />
           <Button type="submit" variant="contained" size="large" disabled={carregando} fullWidth>
-            {carregando ? "Entrando..." : "Entrar"}
+            {carregando ? "Enviando..." : "Enviar link de redefinição"}
           </Button>
-          <Link
-            component="button"
-            type="button"
-            onClick={() => navigate("/esqueci-senha")}
-            underline="hover"
-            sx={{ fontSize: "0.85rem", alignSelf: "center" }}
-          >
-            Esqueci minha senha
-          </Link>
+          <Button variant="text" color="inherit" onClick={() => navigate("/login")}>
+            Voltar para o login
+          </Button>
         </Stack>
       </Paper>
     </Box>

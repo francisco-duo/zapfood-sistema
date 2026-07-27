@@ -49,4 +49,38 @@ export const authService = {
   logout(): void {
     authStorage.limpar();
   },
+
+  async me(): Promise<Usuario> {
+    const response = await apiFetch("/auth/me");
+    return tratarResposta<Usuario>(response, "Não foi possível carregar os dados da conta.");
+  },
+
+  async reenviarVerificacao(): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/reenviar-verificacao", { method: "POST" });
+    return tratarResposta(response, "Não foi possível reenviar o e-mail de confirmação.");
+  },
+
+  async verificarEmail(token: string): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/verificar-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    });
+    return tratarResposta(response, "Este link é inválido ou já expirou.");
+  },
+
+  async esqueciSenha(email: string): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/esqueci-senha", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    return tratarResposta(response, "Não foi possível processar a solicitação.");
+  },
+
+  async redefinirSenha(token: string, senhaNova: string): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/redefinir-senha", {
+      method: "POST",
+      body: JSON.stringify({ token, senha_nova: senhaNova }),
+    });
+    return tratarResposta(response, "Este link é inválido ou já expirou.");
+  },
 };

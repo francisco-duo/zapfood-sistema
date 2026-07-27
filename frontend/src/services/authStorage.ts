@@ -18,6 +18,10 @@ export const authStorage = {
     localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
   },
 
+  atualizarUsuario(usuario: Usuario): void {
+    localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario));
+  },
+
   limpar(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USUARIO_KEY);

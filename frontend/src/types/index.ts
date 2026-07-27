@@ -30,6 +30,7 @@ export interface Usuario {
   email: string;
   telefone?: string;
   perfil: PerfilUsuario;
+  email_verificado: boolean;
 }
 
 export type TipoEntrega = "delivery" | "retirada";

@@ -13,3 +13,4 @@ python-jose[cryptography]==3.3.0
 python-multipart==0.0.9
 redis==5.0.4
 aio-pika==9.4.1
+resend==2.4.0

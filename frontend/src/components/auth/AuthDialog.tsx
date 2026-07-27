@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import {
   Button,
   Stack,
   Alert,
+  Link,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAuth } from "../../context/AuthContext";
@@ -25,6 +27,7 @@ export default function AuthDialog({ open, onClose, onSucesso }: AuthDialogProps
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const { login, cadastrar } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -42,6 +45,11 @@ export default function AuthDialog({ open, onClose, onSucesso }: AuthDialogProps
   function handleClose() {
     limparCampos();
     onClose();
+  }
+
+  function handleEsqueciSenha() {
+    handleClose();
+    navigate("/esqueci-senha");
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -123,6 +131,17 @@ export default function AuthDialog({ open, onClose, onSucesso }: AuthDialogProps
           <Button type="submit" variant="contained" size="large" disabled={carregando} fullWidth>
             {carregando ? "Aguarde..." : aba === "login" ? "Entrar" : "Criar conta"}
           </Button>
+          {aba === "login" && (
+            <Link
+              component="button"
+              type="button"
+              onClick={handleEsqueciSenha}
+              underline="hover"
+              sx={{ fontSize: "0.85rem", alignSelf: "center" }}
+            >
+              Esqueci minha senha
+            </Link>
+          )}
         </Stack>
       </DialogContent>
     </Dialog>

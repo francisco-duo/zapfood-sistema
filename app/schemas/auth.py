@@ -19,3 +19,24 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     usuario: UsuarioRead
+
+
+class VerificarEmailRequest(BaseModel):
+    token: str
+
+
+class ReenviarVerificacaoResponse(BaseModel):
+    mensagem: str
+
+
+class EsqueciSenhaRequest(BaseModel):
+    email: EmailStr
+
+
+class RedefinirSenhaRequest(BaseModel):
+    token: str
+    senha_nova: str = Field(min_length=8, max_length=128)
+
+
+class MensagemResponse(BaseModel):
+    mensagem: str

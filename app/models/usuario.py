@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import Boolean, String, DateTime
 from sqlalchemy.dialects.postgresql import UUID, ENUM as PgEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -29,8 +29,13 @@ class Usuario(Base):
     perfil: Mapped[PerfilUsuario] = mapped_column(
         PgEnum(PerfilUsuario, name="perfil_usuario_enum"), nullable=False
     )
+    # Contas de staff (criadas pelo admin) e contas já existentes antes desta
+    # coluna nascem verificadas; só o autocadastro público de cliente exige
+    # confirmação de e-mail explícita (RF004 + verificação via Resend).
+    email_verificado: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
     )
 
     pedidos: Mapped[list["Pedido"]] = relationship(back_populates="usuario")
+    tokens: Mapped[list["UsuarioToken"]] = relationship(back_populates="usuario", cascade="all, delete-orphan")

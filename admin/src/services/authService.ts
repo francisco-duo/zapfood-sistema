@@ -33,4 +33,20 @@ export const authService = {
   logout(): void {
     authStorage.limpar();
   },
+
+  async esqueciSenha(email: string): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/esqueci-senha", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    return tratarResposta(response, "Não foi possível processar a solicitação.");
+  },
+
+  async redefinirSenha(token: string, senhaNova: string): Promise<{ mensagem: string }> {
+    const response = await apiFetch("/auth/redefinir-senha", {
+      method: "POST",
+      body: JSON.stringify({ token, senha_nova: senhaNova }),
+    });
+    return tratarResposta(response, "Este link é inválido ou já expirou.");
+  },
 };

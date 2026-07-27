@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { authService } from "../services/authService";
+import { authStorage } from "../services/authStorage";
 import type { Usuario } from "../types";
 
 interface AuthContextValue {
@@ -8,6 +9,7 @@ interface AuthContextValue {
   login: (email: string, senha: string) => Promise<void>;
   cadastrar: (nome: string, email: string, senha: string, telefone?: string) => Promise<void>;
   logout: () => void;
+  atualizarUsuario: () => Promise<Usuario>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -30,8 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null);
   }
 
+  async function atualizarUsuario() {
+    const usuarioAtualizado = await authService.me();
+    authStorage.atualizarUsuario(usuarioAtualizado);
+    setUsuario(usuarioAtualizado);
+    return usuarioAtualizado;
+  }
+
   return (
-    <AuthContext.Provider value={{ usuario, estaAutenticado: !!usuario, login, cadastrar, logout }}>
+    <AuthContext.Provider
+      value={{ usuario, estaAutenticado: !!usuario, login, cadastrar, logout, atualizarUsuario }}
+    >
       {children}
     </AuthContext.Provider>
   );

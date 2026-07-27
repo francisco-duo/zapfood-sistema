@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import EsqueciSenhaPage from "./pages/EsqueciSenhaPage";
+import RedefinirSenhaPage from "./pages/RedefinirSenhaPage";
 import DashboardPage from "./pages/DashboardPage";
 import PedidosPage from "./pages/PedidosPage";
 import PdvPage from "./pages/PdvPage";
@@ -12,6 +14,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
       <Route
         path="/"
         element={

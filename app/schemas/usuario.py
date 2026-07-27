@@ -27,4 +27,5 @@ class UsuarioRead(UsuarioBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+    email_verificado: bool
     criado_em: datetime

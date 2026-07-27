@@ -74,6 +74,11 @@ async def criar_pedido(
     else:
         # RF004: um pedido online sempre pertence a quem está autenticado —
         # nunca confia em um usuario_id vindo do corpo da requisição.
+        if usuario.perfil == PerfilUsuario.cliente and not usuario.email_verificado:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Confirme seu e-mail antes de finalizar pedidos.",
+            )
         usuario_id_pedido = usuario.id
 
     valor_total = sum(
