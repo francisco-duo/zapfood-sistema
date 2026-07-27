@@ -1,0 +1,112 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zapfood
+          POSTGRES_PASSWORD: zapfood_test_password
+          POSTGRES_DB: zapfood_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zapfood -d zapfood_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: zapfood
+          RABBITMQ_DEFAULT_PASS: zapfood_test_password
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://zapfood:zapfood_test_password@localhost:5432/zapfood_test
+      SYNC_DATABASE_URL: postgresql+psycopg2://zapfood:zapfood_test_password@localhost:5432/zapfood_test
+      REDIS_URL: redis://localhost:6379/1
+      RABBITMQ_URL: amqp://zapfood:zapfood_test_password@localhost:5672/
+      SECRET_KEY: ci-secret-key-not-for-production
+      PEPPER_SENHA: ci-pepper-not-for-production
+      ENVIRONMENT: test
+      RESEND_API_KEY: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements-dev.txt
+
+      - name: Rodar testes com cobertura
+        run: pytest tests/ -q --cov --cov-report=term-missing --cov-report=xml
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-backend
+          path: coverage.xml
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [frontend, admin, kds]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ matrix.app }}
+        run: npm ci
+
+      - name: Rodar testes com cobertura
+        working-directory: ${{ matrix.app }}
+        run: npm run test:coverage
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.app }}
+          path: ${{ matrix.app }}/coverage

@@ -1,0 +1,27 @@
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = [
+    "ignore::DeprecationWarning:passlib.*",
+    "ignore:The event_loop fixture provided by pytest-asyncio has been redefined.*:DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+# SQLAlchemy async usa greenlet pra fazer a ponte com o driver DBAPI
+# sincrono (asyncpg); sem isso, o coverage.py perde a rastreabilidade de
+# trechos de codigo logo apos um "await" que atravessa essa ponte.
+concurrency = ["greenlet", "thread"]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+fail_under = 90
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
