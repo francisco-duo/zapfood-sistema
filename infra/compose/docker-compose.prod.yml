@@ -14,6 +14,18 @@
 # .env.production.example, e tem que bater com o path publicado pelo job
 # "build" do workflow (ghcr.io/<owner>/<repo>/<servico>). Sem eles
 # definidos, cai no fallback local "zapfood/<servico>:prod".
+#
+# Todo container aplica "logging: *logging-padrao": driver json-file do
+# proprio Docker com rotacao (10MB x 5 arquivos = 50MB/container no maximo).
+# App loga em JSON estruturado (ver app/core/logging_config.py); quem roda
+# imagem de terceiro (db/redis/rabbitmq/proxy/certbot) loga no formato deles
+# mesmo, só a rotação é compartilhada.
+
+x-logging: &logging-padrao
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
 
 services:
   migrate:
@@ -29,6 +41,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    logging: *logging-padrao
     restart: "no"
 
   api:
@@ -63,6 +76,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    logging: *logging-padrao
     restart: unless-stopped
 
   worker:
@@ -87,6 +101,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    logging: *logging-padrao
     restart: unless-stopped
 
   db:
@@ -107,6 +122,53 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    logging: *logging-padrao
+    restart: unless-stopped
+
+  # Dump completo do Postgres a cada BACKUP_INTERVAL_HORAS, comprimido e com
+  # rotação por idade — ver infra/scripts/backup-postgres.sh (o mesmo
+  # container também serve pra rodar um backup avulso com "--once", e
+  # infra/scripts/restore-postgres.sh cobre o caminho de restauração).
+  backup:
+    image: postgres:16-alpine
+    container_name: zapfood_backup
+    entrypoint: ["sh", "/scripts/backup-postgres.sh"]
+    env_file:
+      - ../../.env.production
+    environment:
+      BACKUP_RETENTION_DIAS: ${BACKUP_RETENTION_DIAS:-14}
+      BACKUP_INTERVAL_HORAS: ${BACKUP_INTERVAL_HORAS:-24}
+    volumes:
+      - ../scripts/backup-postgres.sh:/scripts/backup-postgres.sh:ro
+      - zapfood_backups_prod:/backups
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging-padrao
+    restart: unless-stopped
+
+  # Monitoramento básico (sem dependência externa): /health/ready da API,
+  # idade do último backup e uso de disco do volume de backups, tudo logado
+  # em JSON — ver infra/scripts/monitor.sh e infra/OPERACOES.md.
+  monitor:
+    image: curlimages/curl:8.10.1
+    container_name: zapfood_monitor
+    entrypoint: ["sh", "/scripts/monitor.sh"]
+    environment:
+      MONITOR_API_URL: http://api:8000/health/ready
+      MONITOR_BACKUP_MAX_IDADE_HORAS: ${MONITOR_BACKUP_MAX_IDADE_HORAS:-30}
+      MONITOR_INTERVAL_SEGUNDOS: ${MONITOR_INTERVAL_SEGUNDOS:-300}
+    volumes:
+      - ../scripts/monitor.sh:/scripts/monitor.sh:ro
+      - zapfood_backups_prod:/backups:ro
+    networks:
+      - backend
+    depends_on:
+      - api
+      - backup
+    logging: *logging-padrao
     restart: unless-stopped
 
   redis:
@@ -122,6 +184,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    logging: *logging-padrao
     restart: unless-stopped
 
   rabbitmq:
@@ -141,6 +204,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    logging: *logging-padrao
     restart: unless-stopped
 
   frontend:
@@ -158,6 +222,7 @@ services:
       - public
     depends_on:
       - api
+    logging: *logging-padrao
     restart: unless-stopped
 
   admin:
@@ -175,6 +240,7 @@ services:
       - public
     depends_on:
       - api
+    logging: *logging-padrao
     restart: unless-stopped
 
   kds:
@@ -193,6 +259,7 @@ services:
       - public
     depends_on:
       - api
+    logging: *logging-padrao
     restart: unless-stopped
 
   proxy:
@@ -220,6 +287,7 @@ services:
       - admin
       - kds
       - api
+    logging: *logging-padrao
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
@@ -238,6 +306,7 @@ services:
       - zapfood_certbot_webroot:/var/www/certbot
     entrypoint: >
       /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --deploy-hook 'chmod -R o+rX /etc/letsencrypt/live /etc/letsencrypt/archive'; sleep 12h & wait $${!}; done"
+    logging: *logging-padrao
     restart: unless-stopped
 
 networks:
@@ -252,3 +321,4 @@ volumes:
   zapfood_rabbitmq_data_prod:
   zapfood_letsencrypt:
   zapfood_certbot_webroot:
+  zapfood_backups_prod:

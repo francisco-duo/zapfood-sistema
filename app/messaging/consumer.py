@@ -5,6 +5,7 @@ import logging
 import aio_pika
 
 from app.core.config import settings
+from app.core.logging_config import configurar_logging
 from app.messaging.notifiers import (
     enviar_email,
     enviar_push,
@@ -13,9 +14,7 @@ from app.messaging.notifiers import (
 )
 from app.messaging.rabbitmq import NOTIFICATIONS_QUEUE, declarar_topologia, obter_canal
 
-logging.basicConfig(
-    level=settings.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-)
+configurar_logging(settings.LOG_LEVEL)
 logger = logging.getLogger("messaging.consumer")
 
 

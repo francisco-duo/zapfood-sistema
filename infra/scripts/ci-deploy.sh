@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Executado NO SERVIDOR pelo job "deploy" do workflow
-# .github/workflows/deploy.yml, via SSH. Nao chame isso manualmente sem
+# .github/workflows/ci-cd.yml, via SSH. Nao chame isso manualmente sem
 # entender o fluxo — pra deploy manual use infra/scripts/deploy.sh (builda
 # local em vez de puxar do registry).
 #

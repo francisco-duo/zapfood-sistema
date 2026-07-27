@@ -12,12 +12,11 @@ from app.api.v1.kds import router as kds_router
 from app.api.v1.pedidos import router as pedidos_router
 from app.core.config import settings
 from app.core.health import verificar_banco, verificar_rabbitmq, verificar_redis
+from app.core.logging_config import configurar_logging
 from app.core.redis import fechar_redis
 from app.messaging.rabbitmq import declarar_topologia, fechar_conexao
 
-logging.basicConfig(
-    level=settings.LOG_LEVEL, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-)
+configurar_logging(settings.LOG_LEVEL)
 logger = logging.getLogger("app.startup")
 
 TENTATIVAS_CONEXAO_RABBITMQ = 5

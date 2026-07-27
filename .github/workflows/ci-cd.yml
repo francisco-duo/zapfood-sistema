@@ -233,14 +233,21 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Copiar compose e script de deploy pro servidor
+      - name: Copiar infra/ pro servidor
+        # infra/compose/docker-compose.prod.yml bind-monta infra/scripts/backup-postgres.sh
+        # e infra/scripts/monitor.sh (ver serviços "backup"/"monitor") — copiar a árvore
+        # infra/ inteira em vez de arquivo por arquivo evita que esses bind mounts quebrem
+        # no servidor sempre que um script novo for adicionado aqui.
+        #
+        # O "rm -rf" antes do scp é necessário: se infra/ já existir no
+        # destino (a partir do 2º deploy em diante), "scp -r infra host:dest/infra"
+        # aninha em dest/infra/infra em vez de sobrescrever — infra/ é 100%
+        # reproduzível a partir do repo, então recriar do zero a cada deploy é seguro.
         run: |
           ssh -p "${{ secrets.SSH_PORT || 22 }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "mkdir -p '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/compose' '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/scripts'"
-          scp -P "${{ secrets.SSH_PORT || 22 }}" infra/compose/docker-compose.prod.yml \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/compose/docker-compose.prod.yml"
-          scp -P "${{ secrets.SSH_PORT || 22 }}" infra/scripts/ci-deploy.sh \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/scripts/ci-deploy.sh"
+            "mkdir -p '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}' && rm -rf '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra'"
+          scp -r -P "${{ secrets.SSH_PORT || 22 }}" infra \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra"
 
       - name: Deploy (pull, migrations, up, health check, rollback se falhar)
         env:
