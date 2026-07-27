@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.pedido import OrigemPedido, TipoEntrega, StatusPedido
+from app.models.pedido import OrigemPedido, StatusPedido, TipoEntrega
 from app.schemas.item_pedido import ItemPedidoCreate, ItemPedidoRead
 
 

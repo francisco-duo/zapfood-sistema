@@ -5,7 +5,12 @@ import logging
 import aio_pika
 
 from app.core.config import settings
-from app.messaging.notifiers import enviar_email, enviar_push, enviar_whatsapp, mensagem_para
+from app.messaging.notifiers import (
+    enviar_email,
+    enviar_push,
+    enviar_whatsapp,
+    mensagem_para,
+)
 from app.messaging.rabbitmq import NOTIFICATIONS_QUEUE, declarar_topologia, obter_canal
 
 logging.basicConfig(

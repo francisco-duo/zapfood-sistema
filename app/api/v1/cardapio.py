@@ -10,7 +10,12 @@ from app.models.categoria import Categoria
 from app.models.produto import Produto
 from app.models.usuario import PerfilUsuario
 from app.schemas.categoria import CategoriaCreate, CategoriaRead
-from app.schemas.produto import CardapioResponse, ProdutoCreate, ProdutoRead, ProdutoUpdate
+from app.schemas.produto import (
+    CardapioResponse,
+    ProdutoCreate,
+    ProdutoRead,
+    ProdutoUpdate,
+)
 from app.services.cardapio_cache import (
     invalidar_cardapio_cache,
     obter_cardapio_cache,

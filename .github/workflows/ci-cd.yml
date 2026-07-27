@@ -1,0 +1,254 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancela um run anterior do mesmo branch se um push novo chegar antes de
+# terminar — evita gastar minutos de CI/rodar deploy duplicado em corrida.
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────── lint ───────────────────────────
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar ruff
+        run: pip install ruff==0.6.9
+
+      - name: ruff check
+        run: ruff check app tests
+
+  lint-frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [frontend, admin, kds]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ matrix.app }}
+        run: npm ci
+
+      - name: oxlint
+        working-directory: ${{ matrix.app }}
+        run: npm run lint
+
+  # ─────────────────────────── testes ───────────────────────────
+  test-backend:
+    needs: lint-backend
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: zapfood
+          POSTGRES_PASSWORD: zapfood_test_password
+          POSTGRES_DB: zapfood_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U zapfood -d zapfood_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: zapfood
+          RABBITMQ_DEFAULT_PASS: zapfood_test_password
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://zapfood:zapfood_test_password@localhost:5432/zapfood_test
+      SYNC_DATABASE_URL: postgresql+psycopg2://zapfood:zapfood_test_password@localhost:5432/zapfood_test
+      REDIS_URL: redis://localhost:6379/1
+      RABBITMQ_URL: amqp://zapfood:zapfood_test_password@localhost:5672/
+      SECRET_KEY: ci-secret-key-not-for-production
+      PEPPER_SENHA: ci-pepper-not-for-production
+      ENVIRONMENT: test
+      RESEND_API_KEY: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements-dev.txt
+
+      - name: Rodar testes com cobertura
+        run: pytest tests/ -q --cov --cov-report=term-missing --cov-report=xml
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-backend
+          path: coverage.xml
+
+  test-frontend:
+    needs: lint-frontend
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [frontend, admin, kds]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ matrix.app }}
+        run: npm ci
+
+      - name: Rodar testes com cobertura
+        working-directory: ${{ matrix.app }}
+        run: npm run test:coverage
+
+      - name: Publicar relatório de cobertura
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.app }}
+          path: ${{ matrix.app }}/coverage
+
+  # ─────────────────────────── build & push (só main) ───────────────────────────
+  build:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: backend
+            dockerfile: infra/docker/Dockerfile.backend
+          - name: frontend
+            dockerfile: infra/docker/Dockerfile.frontend
+          - name: admin
+            dockerfile: infra/docker/Dockerfile.admin
+          - name: kds
+            dockerfile: infra/docker/Dockerfile.kds
+          - name: proxy
+            dockerfile: infra/docker/Dockerfile.proxy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push da imagem ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:latest
+          # VITE_API_URL/VITE_WS_URL só existem no Dockerfile do frontend/admin/kds
+          # (ARG declarado). Passar aqui pra backend/proxy também não quebra o
+          # build — o Docker só avisa que o build-arg não foi consumido.
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  # ─────────────────────────── deploy via SSH (só main) ───────────────────────────
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Confiar no host de destino
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Copiar compose e script de deploy pro servidor
+        run: |
+          ssh -p "${{ secrets.SSH_PORT || 22 }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "mkdir -p '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/compose' '${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/scripts'"
+          scp -P "${{ secrets.SSH_PORT || 22 }}" infra/compose/docker-compose.prod.yml \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/compose/docker-compose.prod.yml"
+          scp -P "${{ secrets.SSH_PORT || 22 }}" infra/scripts/ci-deploy.sh \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}/infra/scripts/ci-deploy.sh"
+
+      - name: Deploy (pull, migrations, up, health check, rollback se falhar)
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR: ${{ github.actor }}
+          APP_DIR: ${{ secrets.SSH_APP_DIR || '/opt/zapfood' }}
+        run: |
+          ssh -p "${{ secrets.SSH_PORT || 22 }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "IMAGE_TAG='$IMAGE_TAG' GHCR_TOKEN='$GHCR_TOKEN' GHCR_ACTOR='$GHCR_ACTOR' APP_DIR='$APP_DIR' bash -s" \
+            < infra/scripts/ci-deploy.sh

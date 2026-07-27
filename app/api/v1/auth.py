@@ -19,7 +19,10 @@ from app.schemas.auth import (
 )
 from app.schemas.usuario import UsuarioCreate, UsuarioRead
 from app.services.email_service import enviar_email
-from app.services.email_templates import template_redefinicao_senha, template_verificacao_email
+from app.services.email_templates import (
+    template_redefinicao_senha,
+    template_verificacao_email,
+)
 from app.services.tokens import consumir_token, criar_token
 
 router = APIRouter()

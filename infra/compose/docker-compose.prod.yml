@@ -7,13 +7,20 @@
 #   - db/redis/rabbitmq nao publicam porta para o host (somente rede interna)
 #   - migracoes do banco rodam em um servico dedicado antes da API subir
 #   - frontends sao servidos como estatico via nginx (sem vite dev server)
+#
+# Cada servico de app tem "build" (deploy manual local, via --build) e
+# "image" (deploy via CI, que so dá "pull" nessa tag e nunca builda no
+# servidor). IMAGE_REGISTRY/IMAGE_TAG vem do .env.production — ver
+# .env.production.example, e tem que bater com o path publicado pelo job
+# "build" do workflow (ghcr.io/<owner>/<repo>/<servico>). Sem eles
+# definidos, cai no fallback local "zapfood/<servico>:prod".
 
 services:
   migrate:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.backend
-    image: zapfood-backend:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/backend:${IMAGE_TAG:-prod}
     command: ["alembic", "upgrade", "head"]
     env_file:
       - ../../.env.production
@@ -28,7 +35,7 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.backend
-    image: zapfood-backend:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/backend:${IMAGE_TAG:-prod}
     container_name: zapfood_api
     command:
       [
@@ -62,7 +69,7 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.backend
-    image: zapfood-backend:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/backend:${IMAGE_TAG:-prod}
     container_name: zapfood_worker
     command: ["python", "-m", "app.messaging.consumer"]
     env_file:
@@ -142,7 +149,7 @@ services:
       dockerfile: infra/docker/Dockerfile.frontend
       args:
         VITE_API_URL: ${VITE_API_URL}
-    image: zapfood-frontend:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/frontend:${IMAGE_TAG:-prod}
     container_name: zapfood_frontend
     # Sem porta publicada: so o proxy fala com este container.
     # ports:
@@ -159,7 +166,7 @@ services:
       dockerfile: infra/docker/Dockerfile.admin
       args:
         VITE_API_URL: ${VITE_API_URL}
-    image: zapfood-admin:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/admin:${IMAGE_TAG:-prod}
     container_name: zapfood_admin
     # Sem porta publicada: so o proxy fala com este container.
     # ports:
@@ -177,7 +184,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL}
         VITE_WS_URL: ${VITE_WS_URL}
-    image: zapfood-kds:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/kds:${IMAGE_TAG:-prod}
     container_name: zapfood_kds
     # Sem porta publicada: so o proxy fala com este container.
     # ports:
@@ -192,7 +199,7 @@ services:
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.proxy
-    image: zapfood-proxy:prod
+    image: ${IMAGE_REGISTRY:-zapfood}/proxy:${IMAGE_TAG:-prod}
     container_name: zapfood_proxy
     environment:
       APP_DOMAIN: ${APP_DOMAIN}

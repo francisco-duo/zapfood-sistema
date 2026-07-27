@@ -1,6 +1,11 @@
 import pytest
 
-from app.messaging.notifiers import enviar_email, enviar_push, enviar_whatsapp, mensagem_para
+from app.messaging.notifiers import (
+    enviar_email,
+    enviar_push,
+    enviar_whatsapp,
+    mensagem_para,
+)
 
 
 @pytest.mark.parametrize(

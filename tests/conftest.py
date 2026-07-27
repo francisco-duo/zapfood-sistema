@@ -39,7 +39,6 @@ from app.db.session import engine as db_engine_global  # noqa: E402
 from app.db.session import get_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.usuario import PerfilUsuario, Usuario  # noqa: E402
-
 from tests import factories  # noqa: E402
 
 

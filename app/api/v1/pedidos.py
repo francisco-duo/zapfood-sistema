@@ -2,9 +2,9 @@ import uuid
 from decimal import Decimal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select
 
 from app.core.deps import get_current_usuario, requer_perfil
 from app.db.session import get_db

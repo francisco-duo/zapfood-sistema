@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
 
-from app.services.email_templates import template_redefinicao_senha, template_verificacao_email
+from app.services.email_templates import (
+    template_redefinicao_senha,
+    template_verificacao_email,
+)
 
 
 def test_template_verificacao_email_contem_nome_link_e_ano_atual():
