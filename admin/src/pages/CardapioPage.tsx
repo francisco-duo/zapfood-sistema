@@ -128,7 +128,7 @@ export default function CardapioPage() {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                       <Avatar src={produto.imagemUrl} variant="rounded" />
                       <Box>
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
                           {produto.nome}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
@@ -145,7 +145,7 @@ export default function CardapioPage() {
                         <Typography variant="body2" sx={{ textDecoration: "line-through" }} color="text.disabled">
                           {formatador.format(produto.preco)}
                         </Typography>
-                        <Typography variant="body2" color="secondary.main" fontWeight={700}>
+                        <Typography variant="body2" color="secondary.main" sx={{ fontWeight: 700 }}>
                           {formatador.format(produto.precoPromocional)}
                         </Typography>
                       </>

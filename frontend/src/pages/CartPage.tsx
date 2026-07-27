@@ -74,7 +74,7 @@ export default function CartPage() {
             <CardContent sx={{ display: "flex", alignItems: "center", gap: 1.5, "&:last-child": { pb: 2 } }}>
               <Avatar src={item.imagemUrl} variant="rounded" sx={{ width: 52, height: 52, borderRadius: "12px" }} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="subtitle2" fontWeight={700} noWrap>
+                <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
                   {item.nome}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
@@ -93,7 +93,7 @@ export default function CartPage() {
                 >
                   <RemoveRoundedIcon fontSize="small" />
                 </IconButton>
-                <Typography fontWeight={700} sx={{ minWidth: 16, textAlign: "center", fontSize: "0.85rem" }}>
+                <Typography sx={{ minWidth: 16, textAlign: "center", fontSize: "0.85rem", fontWeight: 700 }}>
                   {item.quantidade}
                 </Typography>
                 <IconButton

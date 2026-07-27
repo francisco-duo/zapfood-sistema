@@ -54,7 +54,7 @@ export default function ProductCard({ produto }: { produto: Produto }) {
       </Box>
       <CardContent sx={{ flex: 1, py: 1.25, "&:last-child": { pb: 1.25 }, minWidth: 0 }}>
         <Stack spacing={0.25}>
-          <Typography variant="subtitle1" fontWeight={700} noWrap sx={{ letterSpacing: "-0.01em" }}>
+          <Typography variant="subtitle1" noWrap sx={{ letterSpacing: "-0.01em", fontWeight: 700 }}>
             {produto.nome}
           </Typography>
           <Typography
@@ -79,12 +79,12 @@ export default function ProductCard({ produto }: { produto: Produto }) {
                   <Typography variant="caption" sx={{ textDecoration: "line-through" }} color="text.disabled">
                     {formatador.format(produto.preco)}
                   </Typography>
-                  <Typography variant="subtitle1" color="primary.dark" fontWeight={800}>
+                  <Typography variant="subtitle1" color="primary.dark" sx={{ fontWeight: 800 }}>
                     {formatador.format(produto.precoPromocional!)}
                   </Typography>
                 </Stack>
               ) : (
-                <Typography variant="subtitle1" fontWeight={800}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                   {formatador.format(produto.preco)}
                 </Typography>
               )}
@@ -110,8 +110,13 @@ export default function ProductCard({ produto }: { produto: Produto }) {
                   <RemoveRoundedIcon fontSize="small" />
                 </IconButton>
                 <Typography
-                  fontWeight={800}
-                  sx={{ minWidth: 16, textAlign: "center", color: "primary.contrastText", fontSize: "0.85rem" }}
+                  sx={{
+                    minWidth: 16,
+                    textAlign: "center",
+                    color: "primary.contrastText",
+                    fontSize: "0.85rem",
+                    fontWeight: 800,
+                  }}
                 >
                   {itemNoCarrinho.quantidade}
                 </Typography>

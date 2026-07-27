@@ -64,12 +64,12 @@ export default function PedidoCard({
     <Paper sx={{ p: 2.25, borderRadius: "16px" }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
         <Box>
-          <Typography variant="subtitle2" fontWeight={800}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
             #{pedido.id.slice(0, 8)}
           </Typography>
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", mt: 0.25 }}>
             <IconeEntrega sx={{ fontSize: 14, color: "text.secondary" }} />
-            <Typography variant="caption" color="text.secondary" fontWeight={600}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
               {pedido.origem === "balcao" ? "Balcão" : "Online"} · {ROTULO_ENTREGA[pedido.tipo_entrega]}
             </Typography>
           </Stack>
@@ -110,10 +110,10 @@ export default function PedidoCard({
       )}
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.75 }}>
-        <Typography variant="body2" color="text.secondary" fontWeight={600}>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
           {pedido.forma_pagamento}
         </Typography>
-        <Typography variant="subtitle1" fontWeight={800}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
           {formatador.format(pedido.valor_total)}
         </Typography>
       </Box>

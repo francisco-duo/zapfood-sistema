@@ -11,7 +11,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
   Avatar,
 } from "@mui/material";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
@@ -67,7 +66,7 @@ function CartaoMetrica({
       <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
         {titulo}
       </Typography>
-      <Typography variant="h5" fontWeight={800} sx={{ letterSpacing: "-0.01em" }}>
+      <Typography variant="h5" sx={{ letterSpacing: "-0.01em", fontWeight: 800 }}>
         {valor}
       </Typography>
     </Paper>

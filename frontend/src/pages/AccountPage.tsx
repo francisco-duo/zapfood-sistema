@@ -52,7 +52,7 @@ export default function AccountPage() {
             {usuario!.nome[0]}
           </Avatar>
           <Stack sx={{ minWidth: 0 }}>
-            <Typography fontWeight={700} noWrap>
+            <Typography noWrap sx={{ fontWeight: 700 }}>
               {usuario!.nome}
             </Typography>
             <Typography variant="body2" color="text.secondary" noWrap>

@@ -22,7 +22,7 @@ export default function OrderConfirmedPage() {
       >
         <CheckRoundedIcon sx={{ fontSize: 46, color: "#fff" }} />
       </Box>
-      <Typography variant="h5" fontWeight={800} sx={{ letterSpacing: "-0.01em" }}>
+      <Typography variant="h5" sx={{ letterSpacing: "-0.01em", fontWeight: 800 }}>
         Pedido enviado com sucesso!
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 280 }}>

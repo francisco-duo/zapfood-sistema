@@ -11,4 +11,18 @@ export default defineConfig({
       usePolling: true,
     },
   },
+  build: {
+    // Separa libs estáveis (mudam raramente) do código da aplicação (muda a
+    // cada deploy) — o navegador reaproveita o cache desses chunks entre versões.
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined
+          if (id.includes("@mui") || id.includes("@emotion")) return "mui-vendor"
+          if (id.includes("react")) return "react-vendor"
+          return undefined
+        },
+      },
+    },
+  },
 })

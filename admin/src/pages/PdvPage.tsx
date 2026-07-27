@@ -175,10 +175,10 @@ export default function PdvPage() {
                   >
                     <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle2" fontWeight={700} noWrap>
+                        <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
                           {produto.nome}
                         </Typography>
-                        <Typography variant="body2" color="primary.main" fontWeight={800}>
+                        <Typography variant="body2" color="primary.main" sx={{ fontWeight: 800 }}>
                           {formatador.format(produto.precoPromocional ?? produto.preco)}
                         </Typography>
                       </Box>
@@ -231,7 +231,7 @@ export default function PdvPage() {
                       bgcolor: "background.default",
                     }}
                   >
-                    <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }} noWrap>
+                    <Typography variant="body2" noWrap sx={{ flex: 1, fontWeight: 600 }}>
                       {item.nome}
                     </Typography>
                     <Stack
@@ -244,7 +244,7 @@ export default function PdvPage() {
                       >
                         <RemoveRoundedIcon fontSize="small" />
                       </IconButton>
-                      <Typography variant="body2" fontWeight={700} sx={{ minWidth: 16, textAlign: "center" }}>
+                      <Typography variant="body2" sx={{ minWidth: 16, textAlign: "center", fontWeight: 700 }}>
                         {item.quantidade}
                       </Typography>
                       <IconButton
@@ -255,7 +255,7 @@ export default function PdvPage() {
                         <AddRoundedIcon fontSize="small" />
                       </IconButton>
                     </Stack>
-                    <Typography variant="body2" fontWeight={800} sx={{ minWidth: 70, textAlign: "right" }}>
+                    <Typography variant="body2" sx={{ minWidth: 70, textAlign: "right", fontWeight: 800 }}>
                       {formatador.format(item.precoUnitario * item.quantidade)}
                     </Typography>
                   </Box>
@@ -397,7 +397,7 @@ export default function PdvPage() {
               <Stack spacing={0.75} sx={{ my: 1, p: 1.5, borderRadius: "12px", bgcolor: "background.default" }}>
                 {reciboAtual.itens.map((item, indice) => (
                   <Box key={indice} sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {item.quantidade}x {item.nome}
                     </Typography>
                     <Typography variant="body2">
@@ -407,10 +407,10 @@ export default function PdvPage() {
                 ))}
               </Stack>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="subtitle1" fontWeight={800}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                   Total
                 </Typography>
-                <Typography variant="subtitle1" fontWeight={800}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
                   {formatador.format(reciboAtual.total)}
                 </Typography>
               </Box>

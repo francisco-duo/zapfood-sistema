@@ -106,7 +106,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               </ListItemIcon>
               <ListItemText
                 primary={item.label}
-                slotProps={{ primary: { fontSize: "0.88rem", fontWeight: ativo ? 700 : 600 } }}
+                slotProps={{ primary: { sx: { fontSize: "0.88rem", fontWeight: ativo ? 700 : 600 } } }}
               />
             </ListItemButton>
           );
@@ -119,7 +119,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             {usuario?.nome[0]}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="body2" fontWeight={700} noWrap sx={{ color: "#fff" }}>
+            <Typography variant="body2" noWrap sx={{ color: "#fff", fontWeight: 700 }}>
               {usuario?.nome}
             </Typography>
             <Chip
@@ -142,7 +142,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
           <ListItemIcon sx={{ minWidth: 38, color: "inherit" }}>
             <LogoutRoundedIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Sair" slotProps={{ primary: { fontSize: "0.88rem", fontWeight: 600 } }} />
+          <ListItemText primary="Sair" slotProps={{ primary: { sx: { fontSize: "0.88rem", fontWeight: 600 } } }} />
         </ListItemButton>
       </Box>
     </Box>
