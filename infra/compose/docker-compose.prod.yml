@@ -34,8 +34,10 @@ services:
       ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
     env_file:
       - ../../.env.production
-    ports:
-      - "${API_PORT:-8001}:8000"
+    # Sem porta publicada: em producao o acesso e sempre via proxy (443).
+    # Descomente para bater direto na API durante depuracao local.
+    # ports:
+    #   - "${API_PORT:-8001}:8000"
     networks:
       - backend
     depends_on:
@@ -133,8 +135,9 @@ services:
         VITE_API_URL: ${VITE_API_URL}
     image: zapfood-frontend:prod
     container_name: zapfood_frontend
-    ports:
-      - "${FRONTEND_PORT:-5174}:8080"
+    # Sem porta publicada: so o proxy fala com este container.
+    # ports:
+    #   - "${FRONTEND_PORT:-5174}:8080"
     networks:
       - public
     depends_on:
@@ -149,8 +152,9 @@ services:
         VITE_API_URL: ${VITE_API_URL}
     image: zapfood-admin:prod
     container_name: zapfood_admin
-    ports:
-      - "${ADMIN_PORT:-5175}:8080"
+    # Sem porta publicada: so o proxy fala com este container.
+    # ports:
+    #   - "${ADMIN_PORT:-5175}:8080"
     networks:
       - public
     depends_on:
@@ -166,12 +170,58 @@ services:
         VITE_WS_URL: ${VITE_WS_URL}
     image: zapfood-kds:prod
     container_name: zapfood_kds
-    ports:
-      - "${KDS_PORT:-5176}:8080"
+    # Sem porta publicada: so o proxy fala com este container.
+    # ports:
+    #   - "${KDS_PORT:-5176}:8080"
     networks:
       - public
     depends_on:
       - api
+    restart: unless-stopped
+
+  proxy:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.proxy
+    image: zapfood-proxy:prod
+    container_name: zapfood_proxy
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+      KDS_DOMAIN: ${KDS_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - zapfood_letsencrypt:/etc/letsencrypt:ro
+      - zapfood_certbot_webroot:/var/www/certbot:ro
+    networks:
+      - public
+      - backend
+    depends_on:
+      - frontend
+      - admin
+      - kds
+      - api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Renovacao automatica dos certificados (a emissao inicial e feita pelo
+  # infra/scripts/init-letsencrypt.sh, rodado uma unica vez manualmente).
+  certbot:
+    image: certbot/certbot:latest
+    container_name: zapfood_certbot
+    volumes:
+      - zapfood_letsencrypt:/etc/letsencrypt
+      - zapfood_certbot_webroot:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --deploy-hook 'chmod -R o+rX /etc/letsencrypt/live /etc/letsencrypt/archive'; sleep 12h & wait $${!}; done"
     restart: unless-stopped
 
 networks:
@@ -184,3 +234,5 @@ volumes:
   zapfood_pgdata_prod:
   zapfood_redis_data_prod:
   zapfood_rabbitmq_data_prod:
+  zapfood_letsencrypt:
+  zapfood_certbot_webroot:

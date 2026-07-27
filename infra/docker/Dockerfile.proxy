@@ -1,0 +1,13 @@
+# Proxy reverso de borda: TLS/HTTP2/HSTS/gzip/cache/rate limit + roteamento por
+# dominio para os 3 frontends e a API. Container non-root (uid 101), escuta em
+# portas altas (8080/8443) — o docker-compose mapeia 80/443 do host para elas.
+
+FROM nginxinc/nginx-unprivileged:1.27-alpine
+
+COPY infra/nginx/proxy.conf.template /etc/nginx/templates/default.conf.template
+COPY infra/nginx/snippets/ /etc/nginx/snippets/
+
+EXPOSE 8080 8443
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=5 \
+    CMD wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1
